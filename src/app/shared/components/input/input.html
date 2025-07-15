@@ -1,0 +1,10 @@
+<input
+    class="input"
+    [placeholder]="placeholder()"
+    [ngClass]="{
+        'input_size_small': size() == 'small',
+        'input_size_large': size() == 'large',
+        'input_theme_default': type() == 'default',
+        'input_theme_primary': type() == 'primary',
+    }"
+/>

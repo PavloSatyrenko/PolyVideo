@@ -1,0 +1,53 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.button_size_small {
+    gap: 6px;
+    height: 36px;
+    padding: 11px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 18px;
+}
+
+.button_size_large {
+    gap: 10px;
+    height: 44px;
+    padding: 13px 32px;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 22px;
+}
+
+.button_full_width {
+    width: 100%;
+}
+
+.button_with_icon:not(.button_with_label) {
+    aspect-ratio: 1;
+    border-radius: 50%;
+}
+
+.button_size_small.button_with_icon:not(.button_with_label) {
+    padding: 11px;
+}
+
+.button_size_large.button_with_icon:not(.button_with_label) {
+    padding: 13px;
+}
+
+.button_theme_primary {
+    color: var(--primary-text-color);
+    background-color: var(--primary-color);
+}
+
+.button_theme_primary:not(:disabled):hover {
+    background-color: var(--primary-hover-color);
+}
