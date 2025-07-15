@@ -1,0 +1,17 @@
+<div class="sidebar" [class.sidebar_expanded]="isSidebarExpanded()">
+    <button class="sidebar__expand" (click)="toggleSidebarExpansion()">
+        <i class="expand__icon fa-solid fa-arrows-left-right"></i>
+    </button>
+
+    <nav class="sidebar__list">
+        @for(sidebarItem of sidebarItems; track sidebarItem.link) {
+        <app-sidebar-item
+            [link]="sidebarItem.link"
+            [label]="sidebarItem.label"
+            [icon]="sidebarItem.icon"
+            [badgeCount]="sidebarItem.badgeCount"
+            [isExpanded]="isSidebarExpanded()"
+        ></app-sidebar-item>
+        }
+    </nav>
+</div>
