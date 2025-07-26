@@ -1,0 +1,33 @@
+@if (type() == "audio") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-microphone"></i>
+</button>
+} @else if (type() == "video") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-video"></i>
+</button>
+} @else if (type() == "screen") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-desktop"></i>
+</button>
+} @else if (type() == "participants") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-users"></i>
+</button>
+} @else if (type() == "chat") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-comment"></i>
+</button>
+} @else if (type() == "hand") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-hand-paper"></i>
+</button>
+} @else if (type() == "other") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-ellipsis-h"></i>
+</button>
+} @else if (type() == "leave") {
+<button class="control__button">
+    <i class="control__icon fa-solid fa-sign-out-alt"></i>
+</button>
+}

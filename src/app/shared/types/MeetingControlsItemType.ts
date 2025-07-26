@@ -1,0 +1,1 @@
+export type MeetingControlsItemType = "audio" | "video" | "screen" | "participants" | "chat" | "hand" | "other" | "leave";
