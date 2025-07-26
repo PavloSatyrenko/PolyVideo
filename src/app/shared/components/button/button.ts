@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, input, InputSignal, Output } from "@angular/core";
+import { Component, input, InputSignal, output, OutputEmitterRef } from "@angular/core";
 
 @Component({
     selector: "ui-button",
@@ -15,5 +15,5 @@ export class Button {
     public readonly isDisabled: InputSignal<boolean | undefined> = input<boolean>();
     public readonly isFullWidth: InputSignal<boolean | undefined> = input<boolean>();
 
-    @Output() public readonly click: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+    public readonly click: OutputEmitterRef<MouseEvent> = output<MouseEvent>()
 }

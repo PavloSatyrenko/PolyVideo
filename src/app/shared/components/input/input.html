@@ -7,4 +7,8 @@
         'input_theme_default': type() == 'default',
         'input_theme_primary': type() == 'primary',
     }"
+    [value]="value()"
+    (input)="handleInput($event)"
+    (blur)="markAsTouched()"
+    [disabled]="isDisabled()"
 />
