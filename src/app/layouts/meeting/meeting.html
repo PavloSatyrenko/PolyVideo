@@ -1,0 +1,24 @@
+<main class="meeting">
+    <section class="meeting__main">
+        <div class="meeting__view">
+            <div #participantsWrapper class="meeting__participants">
+                @for(participant of participants(); track participant.id) {
+                <app-meeting-participant [participant]="participant"></app-meeting-participant>
+                }
+            </div>
+        </div>
+
+        <div class="meeting__controls">
+            <app-meeting-controls-item [type]="'audio'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'video'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'screen'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'participants'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'chat'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'hand'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'other'"></app-meeting-controls-item>
+            <app-meeting-controls-item [type]="'leave'"></app-meeting-controls-item>
+        </div>
+    </section>
+
+    <aside class="meeting__sidebar"></aside>
+</main>

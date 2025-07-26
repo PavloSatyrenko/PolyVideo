@@ -6,8 +6,8 @@
 
         <span class="joining__text">or</span>
 
-        <ui-input [placeholder]="'Enter the meeting code...'" [size]="'large'" [type]="'primary'"></ui-input>
-        <ui-button [label]="'Join'" [size]="'large'" [type]="'primary'"></ui-button>
+        <ui-input [placeholder]="'Enter the meeting code...'" [size]="'large'" [type]="'primary'" [(ngModel)]="meetingCodeValue"></ui-input>
+        <ui-button [label]="'Join'" [size]="'large'" [type]="'primary'" (click)="joinMeeting()"></ui-button>
     </div>
 
     <ui-title class="meetings__title_recent" [title]="'Recent Meetings'" [size]="'medium'"></ui-title>

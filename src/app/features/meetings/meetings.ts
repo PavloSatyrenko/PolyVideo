@@ -5,15 +5,18 @@ import { Input } from "@shared/components/input/input";
 import { RecentMeeting } from "@shared/types/RecentMeeting";
 import { MeetingsItem } from "./meetings-item/meetings-item";
 import { ActivatedRoute, Router } from "@angular/router";
+import { FormsModule } from "@angular/forms";
 
 @Component({
     selector: "app-meetings",
-    imports: [Title, Button, Input, MeetingsItem],
+    imports: [Title, Button, Input, MeetingsItem, FormsModule],
     templateUrl: "./meetings.html",
     styleUrl: "./meetings.css"
 })
 export class Meetings implements OnInit {
     protected recentMeetings: WritableSignal<RecentMeeting[]> = signal<RecentMeeting[]>([]);
+
+    protected meetingCodeValue: string = "";
 
     private router: Router = inject(Router);
     private route: ActivatedRoute = inject(ActivatedRoute);
@@ -40,5 +43,9 @@ export class Meetings implements OnInit {
 
     createMeeting(): void {
         this.router.navigate(["create"], { relativeTo: this.route });
+    }
+
+    joinMeeting(): void {
+        this.router.navigate(["meeting", this.meetingCodeValue])
     }
 }
