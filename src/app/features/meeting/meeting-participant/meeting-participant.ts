@@ -9,5 +9,5 @@ import { ParticipantType } from "@shared/types/ParticipantType";
     styleUrl: "./meeting-participant.css"
 })
 export class MeetingParticipant {
-    public readonly participant: InputSignal<ParticipantType | undefined> = input<ParticipantType>();
+    public readonly participant: InputSignal<ParticipantType> = input.required<ParticipantType>();
 }
