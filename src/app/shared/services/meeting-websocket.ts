@@ -58,7 +58,6 @@ export class MeetingWebSocketService {
         try {
             this.internalLocalAudioStream.set(await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }));
             
-            // Try to get the highest resolution available
             const videoConstraints = {
                 video: {
                     width: { ideal: 1920, max: 1920 },
@@ -69,11 +68,9 @@ export class MeetingWebSocketService {
             };
             
             try {
-                // First try with high resolution constraints
                 this.internalLocalVideoStream.set(await navigator.mediaDevices.getUserMedia(videoConstraints));
             } catch (highResError) {
                 console.warn("High resolution not available, falling back to default:", highResError);
-                // Fallback to default if high resolution fails
                 this.internalLocalVideoStream.set(await navigator.mediaDevices.getUserMedia({ video: true }));
             }
         } catch (error) {
