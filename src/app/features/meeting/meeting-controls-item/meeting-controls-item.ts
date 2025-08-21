@@ -8,5 +8,5 @@ import { MeetingControlsItemType } from "@shared/types/MeetingControlsItemType";
     styleUrl: "./meeting-controls-item.css"
 })
 export class MeetingControlsItem {
-    public readonly type: InputSignal<MeetingControlsItemType | undefined> = input<MeetingControlsItemType>();
+    public readonly type: InputSignal<MeetingControlsItemType> = input.required<MeetingControlsItemType>();
 }
