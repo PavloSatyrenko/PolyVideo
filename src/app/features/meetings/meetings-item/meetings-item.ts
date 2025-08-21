@@ -10,8 +10,8 @@ import { Title } from "@shared/components/title/title";
     styleUrl: "./meetings-item.css"
 })
 export class MeetingsItem {
-    public readonly name: InputSignal<string | undefined> = input<string>();
-    public readonly lastTimeJoined: InputSignal<Date | undefined> = input<Date>();
+    public readonly name: InputSignal<string> = input.required<string>();
+    public readonly lastTimeJoined: InputSignal<Date> = input.required<Date>();
 
     protected computedLastTimeJoined: Signal<string> = computed(() => moment.duration(moment().diff(this.lastTimeJoined())).humanize() || "1 minute");
 }
