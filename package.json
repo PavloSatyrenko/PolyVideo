@@ -19,8 +19,8 @@
         "@fortawesome/fontawesome-free": "^6.7.2",
         "moment": "^2.30.1",
         "rxjs": "~7.8.0",
-        "tslib": "^2.3.0",
-        "zone.js": "~0.15.0"
+        "socket.io-client": "^4.8.1",
+        "tslib": "^2.3.0"
     },
     "devDependencies": {
         "@angular/build": "^20.0.3",
