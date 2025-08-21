@@ -12,7 +12,7 @@
         'button_theme_primary-line': type() === 'primary-line',
     }"
     [disabled]="isDisabled()"
-    (click)="click.emit($event)"
+    (click)="handleClick($event)"
 >
     @if(label()) {
     <span class="button__label">{{ label() }}</span>
