@@ -19,7 +19,7 @@ export class Meetings implements OnInit {
     protected meetingCodeValue: string = "";
 
     private router: Router = inject(Router);
-    private route: ActivatedRoute = inject(ActivatedRoute);
+    private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
 
     ngOnInit(): void {
         this.recentMeetings.set([
@@ -42,10 +42,10 @@ export class Meetings implements OnInit {
     }
 
     createMeeting(): void {
-        this.router.navigate(["create"], { relativeTo: this.route });
+        this.router.navigate(["create"], { relativeTo: this.activatedRoute });
     }
 
     joinMeeting(): void {
-        this.router.navigate(["meeting", this.meetingCodeValue])
+        this.router.navigate(["/meeting", this.meetingCodeValue])
     }
 }
