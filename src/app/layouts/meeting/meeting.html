@@ -1,4 +1,7 @@
 <main class="meeting">
+    @if (!isConnected()) {
+    <app-meeting-waiting-room (onJoinMeeting)="joinMeeting()"></app-meeting-waiting-room>
+    } @else {
     <section class="meeting__main">
         <div class="meeting__view">
             <div #participantsWrapper class="meeting__participants">
@@ -21,4 +24,5 @@
     </section>
 
     <aside class="meeting__sidebar"></aside>
+    }
 </main>

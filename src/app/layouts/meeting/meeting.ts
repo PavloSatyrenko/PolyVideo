@@ -1,73 +1,109 @@
-import { Component, effect, ElementRef, OnInit, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, effect, ElementRef, inject, linkedSignal, OnInit, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
+import { ActivatedRoute, Params } from "@angular/router";
 import { MeetingControlsItem } from "@features/meeting/meeting-controls-item/meeting-controls-item";
 import { MeetingParticipant } from "@features/meeting/meeting-participant/meeting-participant";
+import { MeetingWaitingRoom } from "@features/meeting/meeting-waiting-room/meeting-waiting-room";
+import { MeetingWebSocketService } from "@shared/services/meeting-websocket";
 import { ParticipantType } from "@shared/types/ParticipantType";
+import { StreamsType } from "@shared/types/StreamsType";
 
 @Component({
     selector: "app-meeting",
-    imports: [MeetingControlsItem, MeetingParticipant],
+    imports: [MeetingControlsItem, MeetingParticipant, MeetingWaitingRoom],
     templateUrl: "./meeting.html",
     styleUrl: "./meeting.css"
 })
 export class Meeting implements OnInit {
-    protected isSidebarExpanded: boolean = false;
+    protected meetingId: WritableSignal<string> = signal<string>("");
+    protected isConnected: WritableSignal<boolean> = signal<boolean>(false);
 
-    protected participants: WritableSignal<ParticipantType[]> = signal([]);
+    protected isSidebarExpanded: WritableSignal<boolean> = signal<boolean>(false);
+
+    private meetingWebSocketService: MeetingWebSocketService = inject(MeetingWebSocketService);
+    private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+
+    protected participants: WritableSignal<ParticipantType[]> = linkedSignal<Record<string, StreamsType>, ParticipantType[]>({
+        source: this.meetingWebSocketService.remoteStreams,
+        computation: (newRemoteStreams: Record<string, StreamsType>, previousParticipants: { source: Record<string, StreamsType>, value: ParticipantType[] } | undefined) => {
+            return [...Object.entries(newRemoteStreams).map((remoteStream: [string, StreamsType]) => {
+                const socketId: string = remoteStream[0];
+
+                const previousParticipant: ParticipantType | undefined = previousParticipants?.value.find((participant: ParticipantType) => participant.id === socketId);
+
+                return {
+                    id: socketId,
+                    name: `User ${socketId}`,
+                    isAudioEnabled: true,
+                    isVideoEnabled: true,
+                    audioStream: remoteStream[1].audioStream,
+                    videoStream: remoteStream[1].videoStream,
+                    isMoved: false,
+                    isLocal: false
+                };
+            }), {
+                id: "1",
+                name: `This user`,
+                isAudioEnabled: true,
+                isVideoEnabled: true,
+                audioStream: this.meetingWebSocketService.localAudioStream(),
+                videoStream: this.meetingWebSocketService.localVideoStream(),
+                isMoved: false,
+                isLocal: true
+            }];
+        }
+    });
+
+    protected participantsAmount: Signal<number> = computed<number>(() => this.participants().length);
 
     private participantsWrapper: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement>>("participantsWrapper");
 
     constructor() {
         effect(() => {
-            if (this.participantsWrapper()) {
-                const participantsAmount: number = this.participants().length;
+            if (this.isConnected() && this.participantsWrapper() && this.participantsAmount()) {
+                untracked(() => {
+                    const updatedParticipants: ParticipantType[] = this.participants().map((participant: ParticipantType) => ({
+                        ...participant,
+                        isMoved: false
+                    }));
 
-                this.participants().map((participant: ParticipantType) => participant.isMoved = false);
+                    let { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, this.participantsAmount());
 
-                let { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, participantsAmount);
+                    this.participantsWrapper()!.nativeElement.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                    this.participantsWrapper()!.nativeElement.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-                this.participantsWrapper()!.nativeElement.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-                this.participantsWrapper()!.nativeElement.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-
-                if (participantsAmount % 2) {
-                    for (let i = 0; i < participantsAmount - (rows - 1) * columns; i++) {
-                        this.participants()[(rows - 1) * columns + i].isMoved = true;
+                    if (this.participantsAmount() % 2 && rows > 1) {
+                        for (let i = 0; i < this.participantsAmount() - (rows - 1) * columns; i++) {
+                            updatedParticipants[(rows - 1) * columns + i].isMoved = true;
+                        }
                     }
-                }
+
+                    this.participants.set(updatedParticipants);
+                });
             }
         });
     }
 
     ngOnInit(): void {
-        this.participants.set([
-            {
-                id: "1",
-                isAudioEnabled: false,
-                isVideoEnabled: false
-            },
-            {
-                id: "2",
-                isAudioEnabled: false,
-                isVideoEnabled: false
-            },
-            {
-                id: "3",
-                isAudioEnabled: false,
-                isVideoEnabled: false
-            },
-            {
-                id: "4",
-                isAudioEnabled: false,
-                isVideoEnabled: false
-            },
-            {
-                id: "5",
-                isAudioEnabled: false,
-                isVideoEnabled: false
+        this.activatedRoute.params.subscribe(async (params: Params) => {
+            const roomId: string | undefined = params["id"];
+
+            if (roomId) {
+                this.meetingId.set(roomId);
             }
-        ]);
+        });
     }
 
-    getOptimalParticipantsLayout(wrapperElement: HTMLElement, participantsAmount: number): { rows: number, columns: number } {
+    ngOnDestroy(): void {
+        this.meetingWebSocketService.leave(this.meetingId());
+    }
+
+    protected joinMeeting(): void {
+        this.meetingWebSocketService.connect(this.meetingId());
+
+        this.isConnected.set(true);
+    }
+
+    private getOptimalParticipantsLayout(wrapperElement: HTMLElement, participantsAmount: number): { rows: number, columns: number } {
         const optimalLayout: { rows: number, columns: number } = { rows: 1, columns: participantsAmount };
         const aspectRatio: number = wrapperElement.clientWidth / wrapperElement.clientHeight;
         let minWastedSpace: number = Infinity;
