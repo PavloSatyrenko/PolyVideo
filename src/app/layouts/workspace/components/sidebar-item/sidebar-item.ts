@@ -9,9 +9,9 @@ import { RouterModule } from "@angular/router";
     styleUrl: "./sidebar-item.css"
 })
 export class SidebarItem {
-    public readonly link: InputSignal<string | undefined> = input<string>();
-    public readonly label: InputSignal<string | undefined> = input<string>();
-    public readonly icon: InputSignal<string | undefined> = input<string>();
-    public badgeCount: InputSignal<number | undefined> = input<number>();
-    public isExpanded: InputSignal<boolean | undefined> = input<boolean>();
+    public readonly link: InputSignal<string> = input.required<string>();
+    public readonly label: InputSignal<string> = input.required<string>();
+    public readonly icon: InputSignal<string> = input.required<string>();
+    public badgeCount: InputSignal<number | undefined> = input<number | undefined>();
+    public isExpanded: InputSignal<boolean> = input.required<boolean>();
 }
