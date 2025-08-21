@@ -1,58 +1,50 @@
 import { CommonModule } from "@angular/common";
-import { Component, computed, forwardRef, input, InputSignal, Signal, signal, WritableSignal } from "@angular/core";
-import { NG_VALUE_ACCESSOR } from "@angular/forms";
+import { Component, input, InputSignal, model, ModelSignal } from "@angular/core";
 
 @Component({
     selector: "ui-input",
     imports: [CommonModule],
     templateUrl: "./input.html",
     styleUrl: "./input.css",
-    providers: [{
-        provide: NG_VALUE_ACCESSOR,
-        useExisting: forwardRef(() => Input),
-        multi: true
-    }]
 })
 export class Input {
-    public readonly placeholder: InputSignal<string | undefined> = input<string>();
-    public readonly size: InputSignal<"small" | "large" | undefined> = input<"small" | "large">();
-    public readonly type: InputSignal<"default" | "primary" | undefined> = input<"default" | "primary">();
+    public readonly placeholder: InputSignal<string> = input<string>("");
+    public readonly size: InputSignal<"small" | "large"> = input<"small" | "large">("small");
+    public readonly theme: InputSignal<"default" | "primary"> = input<"default" | "primary">("primary");
+    public readonly type: InputSignal<"text" | "number"> = input<"text" | "number">("text");
+    public readonly minNumber: InputSignal<number> = input<number>(0);
+    public readonly maxNumber: InputSignal<number> = input<number>(Infinity);
+    public isDisabled: InputSignal<boolean> = input<boolean>(false);
 
-    private internalValue: WritableSignal<string> = signal<string>("");
-    protected value: Signal<string> = computed<string>(() => this.internalValue());
+    public value: ModelSignal<string | number> = model<string | number>("");
 
-    private isTouched: boolean = false;
-    protected isDisabled: WritableSignal<boolean> = signal<boolean>(false);
+    handleInput(event: Event): void {
+        const target: HTMLInputElement = event.target as HTMLInputElement;
+        const newValue: string = target.value;
 
-    private onChange: (value: string) => void = () => { };
-    private onTouched: () => void = () => { };
+        if (this.type() == "number") {
+            let newNumericValue: number = parseInt(newValue.replaceAll(/[^0-9]/g, "")) || 0;
 
-    handleInput(event: Event) {
-        const newValue: string = (event.target as HTMLInputElement).value;
-        this.internalValue.set(newValue);
-        this.onChange(newValue);
-    }
-
-    markAsTouched() {
-        if (!this.isTouched) {
-            this.isTouched = true;
-            this.onTouched();
+            this.value.set(newNumericValue);
+            target.value = newNumericValue.toString();
+        }
+        else {
+            this.value.set(newValue);
         }
     }
 
-    writeValue(value: string): void {
-        this.internalValue.set(value ?? "");
-    }
+    onChange(event: Event): void {
+        if (this.type() == "number") {
+            let newNumericValue: number = parseInt((event.target as HTMLInputElement).value.replaceAll(/[^0-9]/g, "")) || 0;
 
-    registerOnChange(fn: (value: string) => void): void {
-        this.onChange = fn;
-    }
+            if (newNumericValue < this.minNumber()) {
+                newNumericValue = this.minNumber();
+            }
+            else if (newNumericValue > this.maxNumber()) {
+                newNumericValue = this.maxNumber();
+            }
 
-    registerOnTouched(fn: () => void): void {
-        this.onTouched = fn;
-    }
-
-    setDisabledState(isDisabled: boolean): void {
-        this.isDisabled.set(isDisabled);
+            (event.target as HTMLInputElement).value = newNumericValue.toString();
+        }
     }
 }
