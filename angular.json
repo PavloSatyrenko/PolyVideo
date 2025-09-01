@@ -48,7 +48,7 @@
                             "sourceMap": true,
                             "fileReplacements": [
                               {
-                                "replace": "src/environments/environment.ts",
+                                "replace": "src/app/shared/environments/environment.ts",
                                 "with": "src/app/shared/environments/environment.development.ts"
                               }
                             ]
