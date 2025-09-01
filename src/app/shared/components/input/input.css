@@ -21,6 +21,10 @@
     border-radius: 22px;
 }
 
+.input_width_full {
+    width: 100%;
+}
+
 .input_theme_primary {
     color: var(--primary-text-color);
     border: 2px solid var(--primary-color);

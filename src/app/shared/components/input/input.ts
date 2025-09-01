@@ -14,6 +14,7 @@ export class Input {
     public readonly type: InputSignal<"text" | "number"> = input<"text" | "number">("text");
     public readonly minNumber: InputSignal<number> = input<number>(0);
     public readonly maxNumber: InputSignal<number> = input<number>(Infinity);
+    public readonly isFullWidth: InputSignal<boolean> = input<boolean>(false);
     public isDisabled: InputSignal<boolean> = input<boolean>(false);
 
     public value: ModelSignal<string | number> = model<string | number>("");

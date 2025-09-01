@@ -6,6 +6,7 @@
         'input_size_large': size() == 'large',
         'input_theme_default': theme() == 'default',
         'input_theme_primary': theme() == 'primary',
+        'input_width_full': isFullWidth()
     }"
     [value]="value()"
     (input)="handleInput($event)"
