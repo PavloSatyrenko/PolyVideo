@@ -1,20 +1,13 @@
 .meetings {
     display: flex;
     flex-direction: column;
-}
-
-.container {
-    width: 100%;
-    max-width: 1000px;
-    padding: 64px 16px;
-    margin: 0 auto;
+    gap: 32px;
 }
 
 .meetings__joining {
     display: flex;
     gap: 16px;
     align-items: center;
-    margin-top: 24px;
 }
 
 .joining__text {
@@ -23,12 +16,13 @@
     color: var(--primary-text-color);
 }
 
-.meetings__title_recent {
-    margin-top: 32px;
+.meetings__recent {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .meetings__list {
     display: flex;
     gap: 24px;
-    margin-top: 16px;
 }

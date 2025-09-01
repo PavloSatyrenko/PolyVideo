@@ -10,11 +10,13 @@
         <ui-button [label]="'Join'" [size]="'large'" [type]="'primary'" (click)="joinMeeting()"></ui-button>
     </div>
 
-    <ui-title class="meetings__title_recent" [title]="'Recent Meetings'" [size]="'medium'"></ui-title>
+    <div class="meetings__recent">
+        <ui-title class="meetings__title_recent" [title]="'Recent Meetings'" [size]="'medium'"></ui-title>
 
-    <div class="meetings__list">
-        @for(meeting of recentMeetings(); track meeting.id) {
-        <app-meetings-item [name]="meeting.name" [lastTimeJoined]="meeting.lastTimeJoined"></app-meetings-item>
-        }
+        <div class="meetings__list">
+            @for(meeting of recentMeetings(); track meeting.id) {
+            <app-meetings-item [name]="meeting.name" [lastTimeJoined]="meeting.lastTimeJoined"></app-meetings-item>
+            }
+        </div>
     </div>
 </div>

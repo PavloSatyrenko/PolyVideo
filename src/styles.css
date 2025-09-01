@@ -41,3 +41,10 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     background-color: var(--background-color);
 }
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    padding: 64px 16px;
+    margin: 0 auto;
+}
