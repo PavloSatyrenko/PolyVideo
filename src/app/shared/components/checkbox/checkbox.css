@@ -28,6 +28,10 @@
     outline: none;
 }
 
+.checkbox:hover:not(:disabled) {
+    border-color: var(--primary-hover-color);
+}
+
 .checkbox:checked {
     background-color: var(--primary-color);
 }
