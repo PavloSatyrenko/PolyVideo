@@ -1,0 +1,25 @@
+<div class="meetings container">
+    <ui-title [title]="'Create Meeting'" [size]="'large'"></ui-title>
+
+    <div class="meetings__form">
+        <ui-input [(value)]="meetingName" [placeholder]="'Meeting Name'" [size]="'large'" [isFullWidth]="true" [theme]="'primary'"></ui-input>
+
+        <ui-checkbox [(value)]="isPlanned" [label]="'Schedule meeting'" (change)="onPlannedChange()"></ui-checkbox>
+
+        <ui-select [(value)]="recurringOption" [label]="'Select recurrence'" [size]="'small'" [isInline]="true" [isDisabled]="!isPlanned()">
+            <option value="none">Do not repeat</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+        </ui-select>
+
+        <ui-button
+            [label]="submitButtonText()"
+            [icon]="'fa-solid fa-arrow-right'"
+            [size]="'large'"
+            [isFullWidth]="true"
+            [type]="'primary'"
+            (click)="createMeeting()"
+        ></ui-button>
+    </div>
+</div>
