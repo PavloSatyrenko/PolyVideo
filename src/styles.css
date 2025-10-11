@@ -1,1 +1,50 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+    --z-index-1: 1010;
+    --z-index-2: 1020;
+
+    --sidebar-width: 70px;
+    --sidebar-expanded-width: 168px;
+
+    --topbar-height: 64px;
+
+    --controls-item-height: 64px;
+
+    --primary-color: #9b5de5;
+    --primary-hover-color: #7f43c7;
+    --secondary-color: #7b7bba;
+
+    --disabled-color: #4d4d4d;
+
+    --background-color: #1e1e2f;
+    --surface-color: #2a2a3d;
+    --surface-hover-color: #3d3d54;
+
+    --primary-text-color: #f1f1f1;
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--background-color);
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    padding: 64px 16px;
+    margin: 0 auto;
+}
