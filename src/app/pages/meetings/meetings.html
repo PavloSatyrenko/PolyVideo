@@ -1,1 +1,46 @@
-<p>meetings works!</p>
+<div class="meetings container">
+    <ui-title [title]="'Meet'" [size]="'large'"></ui-title>
+
+    <div class="meetings__joining">
+        <ui-button
+            [label]="'Create Meeting'"
+            [icon]="'fa-solid fa-plus'"
+            [size]="'large'"
+            [type]="'primary'"
+            (click)="createMeeting()"
+        ></ui-button>
+
+        <span class="joining__text">or</span>
+
+        <ui-input
+            [placeholder]="'Enter the meeting code...'"
+            [size]="'large'"
+            [theme]="'primary'"
+            [(value)]="meetingCodeValue"
+        ></ui-input>
+
+        <ui-button
+            [label]="'Join'"
+            [size]="'large'"
+            [type]="'primary'"
+            (click)="joinMeeting()"
+        ></ui-button>
+    </div>
+
+    <div class="meetings__recent">
+        <ui-title
+            [title]="'Recent Meetings'"
+            [size]="'medium'"
+        ></ui-title>
+
+        <div class="meetings__list">
+            @for(meeting of recentMeetings(); track meeting.id) {
+            <app-meetings-item
+                class="list__item"
+                [name]="meeting.name"
+                [lastTimeJoined]="meeting.lastTimeJoined"
+            ></app-meetings-item>
+            }
+        </div>
+    </div>
+</div>

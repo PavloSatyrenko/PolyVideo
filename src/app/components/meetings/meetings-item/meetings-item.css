@@ -1,0 +1,21 @@
+.meeting {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 164px;
+    padding: 16px 24px;
+    background-color: var(--background-color);
+    border-radius: 24px;
+}
+
+.meeting__information {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meeting__last-time-joined {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--primary-text-color);
+}
