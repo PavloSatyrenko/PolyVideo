@@ -1,0 +1,16 @@
+<a
+    class="sidebar__item"
+    [class.sidebar__item_expanded]="isExpanded()"
+    [routerLink]="link()"
+    routerLinkActive="sidebar__item_active"
+    [routerLinkActiveOptions]="{ exact: true }"
+>
+    <span class="item__inner">
+        <i class="item__icon" [ngClass]="icon()"></i>
+        <span class="item__name">{{ label() }}</span>
+    </span>
+
+    @if (isNotified()) {
+    <span class="item__badge"></span>
+    }
+</a>
