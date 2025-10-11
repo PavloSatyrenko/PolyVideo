@@ -34,7 +34,6 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: unset;
     height: 100%;
     aspect-ratio: 1;
     font-size: 20px;

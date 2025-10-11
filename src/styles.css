@@ -48,3 +48,7 @@ body {
     padding: 64px 16px;
     margin: 0 auto;
 }
+
+.fa-solid {
+    width: unset;
+}
