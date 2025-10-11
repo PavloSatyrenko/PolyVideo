@@ -1,0 +1,7 @@
+@if (size() == "small") {
+<h3 class="title title_size_small">{{ title() }}</h3>
+} @else if (size() == "medium") {
+<h2 class="title title_size_medium">{{ title() }}</h2>
+} @else if (size() == "large") {
+<h1 class="title title_size_large">{{ title() }}</h1>
+}

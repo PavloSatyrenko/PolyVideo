@@ -1,0 +1,22 @@
+<button
+    class="button"
+    [ngClass]="{
+        'button_with_label': label(),
+        'button_with_icon': icon(),
+        'button_disabled': isDisabled(),
+        'button_size_small': size() === 'small',
+        'button_size_large': size() === 'large',
+        'button_width_full': isFullWidth(),
+        'button_theme_primary': type() === 'primary',
+        'button_theme_secondary': type() === 'secondary',
+        'button_theme_primary-line': type() === 'primary-line',
+    }"
+    [disabled]="isDisabled()"
+    (click)="handleClick($event)"
+>
+    @if(label()) {
+    <span class="button__label">{{ label() }}</span>
+    } @if(icon()) {
+    <i class="button__icon" [ngClass]="icon()"></i>
+    }
+</button>
