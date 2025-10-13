@@ -1,3 +1,15 @@
-<div class="participant" [ngClass]="{'participant_moved': participant().isMoved}">
-    <p>{{ participant().name }}</p>
+<div
+    class="participant"
+    [ngClass]="{'participant_moved': participant().isMoved}"
+>
+    <video
+        class="participant__video"
+        [srcObject]="participant().videoStream"
+        autoplay
+        playsinline
+        muted
+    ></video>
+    @if (!participant().isLocal) {
+    <audio [srcObject]="participant().audioStream" autoplay></audio>
+    }
 </div>
