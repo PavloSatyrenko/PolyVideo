@@ -45,6 +45,6 @@ export class Meetings implements OnInit {
     }
 
     joinMeeting(): void {
-        this.router.navigate(["/meeting", this.meetingCodeValue])
+        this.router.navigate(["/conference", this.meetingCodeValue])
     }
 }
