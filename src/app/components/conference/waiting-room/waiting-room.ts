@@ -1,11 +1,28 @@
-import { Component } from "@angular/core";
+import { Component, computed, inject, output, OutputEmitterRef, Signal } from "@angular/core";
+import { ConferenceWebsocket } from "@shared/services/conference-websocket";
+import { ControlsItem } from "@components/conference/controls-item/controls-item";
+import { Title } from "@shared/components/title/title";
+import { Button } from "@shared/components/button/button";
 
 @Component({
     selector: "app-conference-waiting-room",
-    imports: [],
+    imports: [ControlsItem, Title, Button],
     templateUrl: "./waiting-room.html",
     styleUrl: "./waiting-room.css"
 })
 export class WaitingRoom {
+    protected localVideoStream: Signal<MediaStream> = computed<MediaStream>(() => this.conferenceWebSocket.localVideoStream());
+    protected localAudioStream: Signal<MediaStream> = computed<MediaStream>(() => this.conferenceWebSocket.localAudioStream());
 
+    public onJoinConference: OutputEmitterRef<void> = output<void>();
+
+    private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+
+    async ngOnInit(): Promise<void> {
+        await this.conferenceWebSocket.getUserMedia();
+    }
+
+    protected joinConference(): void {
+        this.onJoinConference.emit();
+    }
 }

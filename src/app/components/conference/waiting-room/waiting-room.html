@@ -1,1 +1,44 @@
-<p>waiting-room works!</p>
+<div class="room container">
+    <div class="room__card">
+        <div class="room__options">
+            <div class="room__video">
+                <video
+                    class="video__element"
+                    [srcObject]="localVideoStream()"
+                    autoplay
+                    playsinline
+                    muted
+                ></video>
+            </div>
+
+            <div class="room__controls">
+                <app-conference-controls-item
+                    [type]="'audio'"
+                ></app-conference-controls-item>
+
+                <app-conference-controls-item
+                    [type]="'video'"
+                ></app-conference-controls-item>
+            </div>
+        </div>
+
+        <div class="room__info">
+            <ui-title [title]="'Satyrenko Pavlo'" [size]="'medium'"></ui-title>
+
+            <div class="room__buttons">
+                <ui-button
+                    [label]="'Cancel'"
+                    [size]="'small'"
+                    [type]="'primary-line'"
+                ></ui-button>
+
+                <ui-button
+                    [label]="'Join meeting'"
+                    [size]="'small'"
+                    [type]="'primary'"
+                    (click)="joinConference()"
+                ></ui-button>
+            </div>
+        </div>
+    </div>
+</div>
