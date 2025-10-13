@@ -11,7 +11,7 @@ import { WaitingRoom } from "@components/conference/waiting-room/waiting-room";
 })
 export class Conference implements OnInit {
     protected conferenceId: WritableSignal<string> = signal<string>("");
-    protected isConnected: WritableSignal<boolean> = signal<boolean>(false);
+    protected isConnected: WritableSignal<boolean> = signal<boolean>(true);
 
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
 

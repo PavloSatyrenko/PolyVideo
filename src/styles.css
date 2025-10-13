@@ -18,8 +18,12 @@
     --disabled-color: #4d4d4d;
 
     --background-color: #1e1e2f;
+
     --surface-color: #2a2a3d;
     --surface-hover-color: #3d3d54;
+
+    --element-color: #32324d;
+    --element-hover-color: #383855;
 
     --primary-text-color: #f1f1f1;
 }

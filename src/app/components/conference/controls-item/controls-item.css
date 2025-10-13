@@ -1,0 +1,21 @@
+.control__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--controls-item-height);
+    aspect-ratio: 1;
+    cursor: pointer;
+    background-color: var(--element-color);
+    border: none;
+    border-radius: 16px;
+    transition: background-color 0.3s;
+}
+
+.control__button:hover {
+    background-color: var(--element-hover-color);
+}
+
+.control__icon {
+    font-size: 24px;
+    color: var(--secondary-color);
+}

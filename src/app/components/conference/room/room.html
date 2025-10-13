@@ -1,1 +1,21 @@
-<p>room works!</p>
+<section class="conference__main">
+    <div class="conference__view">
+        <div #participantsWrapper class="conference__participants">
+            @for(participant of participants(); track participant.id) {
+            <app-conference-participant
+                [participant]="participant"
+            ></app-conference-participant>
+            }
+        </div>
+    </div>
+
+    <div class="conference__controls">
+        @for(item of controlsItems(); track item) {
+        <app-conference-controls-item
+            [type]="item"
+        ></app-conference-controls-item>
+        }
+    </div>
+</section>
+
+<aside class="conference__sidebar"></aside>
