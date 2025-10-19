@@ -1,9 +1,12 @@
+:host {
+    min-width: 0;
+    min-height: 0;
+}
+
 .participant {
     display: flex;
     width: 100%;
-    min-width: 0;
     height: 100%;
-    min-height: 0;
     background-color: var(--surface-color);
 }
 
