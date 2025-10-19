@@ -4,11 +4,11 @@ import { Button } from "@shared/components/button/button";
 import { Input } from "@shared/components/input/input";
 import { RecentMeetingType } from "@shared/types/RecentMeetingType";
 import { ActivatedRoute, Router } from "@angular/router";
-import { MeetingsItem } from "@components/meetings/meetings-item/meetings-item";
+import { Item } from "@components/meetings/item/item";
 
 @Component({
     selector: "app-page-meetings",
-    imports: [Title, Button, Input, MeetingsItem],
+    imports: [Title, Button, Input, Item],
     templateUrl: "./meetings.html",
     styleUrl: "./meetings.css"
 })
