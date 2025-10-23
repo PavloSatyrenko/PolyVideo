@@ -1,4 +1,6 @@
 export type StreamsType = {
+    isVideoEnabled: boolean,
     videoStream: MediaStream,
-    audioStream: MediaStream
+    isAudioEnabled: boolean,
+    audioStream: MediaStream,
 }

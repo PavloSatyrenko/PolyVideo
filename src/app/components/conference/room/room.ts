@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, inject, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, effect, ElementRef, inject, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
 import { Participant } from "@components/conference/participant/participant";
 import { ControlsItem } from "@components/conference/controls-item/controls-item";
 import { ParticipantType } from "@shared/types/ParticipantType";
@@ -19,7 +19,35 @@ export class Room {
 
     private participantsWrapper: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement>>("participantsWrapper");
 
-    protected controlsItems: WritableSignal<ConferenceControlsItemType[]> = signal<ConferenceControlsItemType[]>(["audio", "video", "screen", "participants", "chat", "hand", "other", "leave"]);
+    protected controlsItems: Signal<ConferenceControlsItemType[]> = computed<ConferenceControlsItemType[]>(() => [
+        {
+            type: "audio",
+            isEnabled: this.conferenceWebSocket.isAudioEnabled()
+        },
+        {
+            type: "video",
+            isEnabled: this.conferenceWebSocket.isVideoEnabled()
+        },
+        {
+            type: "screen",
+            isEnabled: false
+        },
+        {
+            type: "participants",
+        },
+        {
+            type: "chat",
+        },
+        {
+            type: "hand",
+        },
+        {
+            type: "other",
+        },
+        {
+            type: "leave",
+        }
+    ]);
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
 
@@ -49,8 +77,8 @@ export class Room {
             const updatedParticipants: ParticipantType[] = Object.entries(remoteStreams).map(([socketId, streams]: [string, StreamsType]) => ({
                 id: socketId,
                 name: `User ${socketId.substring(0, 5)}`,
-                isAudioEnabled: true,
-                isVideoEnabled: true,
+                isAudioEnabled: streams.isAudioEnabled,
+                isVideoEnabled: streams.isVideoEnabled,
                 audioStream: streams.audioStream,
                 videoStream: streams.videoStream,
                 isMoved: false,
@@ -60,8 +88,8 @@ export class Room {
             updatedParticipants.push({
                 id: "local",
                 name: "You",
-                isAudioEnabled: true,
-                isVideoEnabled: true,
+                isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
+                isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
                 audioStream: this.conferenceWebSocket.localAudioStream(),
                 videoStream: this.conferenceWebSocket.localVideoStream(),
                 isMoved: false,

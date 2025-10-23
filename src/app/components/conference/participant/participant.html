@@ -2,6 +2,7 @@
     class="participant"
     [ngClass]="{'participant_moved': participant().isMoved}"
 >
+    @if (participant().isVideoEnabled) {
     <video
         class="participant__video"
         [srcObject]="participant().videoStream"
@@ -9,7 +10,9 @@
         playsinline
         muted
     ></video>
-    @if (!participant().isLocal) {
+    } @if (!participant().isLocal && participant().isAudioEnabled) {
     <audio [srcObject]="participant().audioStream" autoplay></audio>
     }
+
+    <span class="participant__name">{{ participant().name }}</span>
 </div>

@@ -1,4 +1,5 @@
-import { Component, input, InputSignal } from "@angular/core";
+import { Component, inject, input, InputSignal } from "@angular/core";
+import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
 
 @Component({
@@ -8,5 +9,15 @@ import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItem
     styleUrl: "./controls-item.css"
 })
 export class ControlsItem {
-    public type: InputSignal<ConferenceControlsItemType> = input.required<ConferenceControlsItemType>();
+    public item: InputSignal<ConferenceControlsItemType> = input.required<ConferenceControlsItemType>();
+
+    private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+
+    protected toggleAudio(): void {
+        this.conferenceWebSocket.toggleAudio();
+    }
+
+    protected toggleVideo(): void {
+        this.conferenceWebSocket.toggleVideo();
+    }
 }

@@ -15,10 +15,17 @@ export class ConferenceWebsocket {
     public localAudioStream: Signal<MediaStream> = computed<MediaStream>(() => this.internalLocalAudioStream());
     public localVideoStream: Signal<MediaStream> = computed<MediaStream>(() => this.internalLocalVideoStream());
 
+    public isAudioEnabled: Signal<boolean> = computed<boolean>(() => {
+        return this.internalLocalAudioStream().getAudioTracks().some((track: MediaStreamTrack) => track.enabled);
+    });
+    public isVideoEnabled: Signal<boolean> = computed<boolean>(() => {
+        return this.internalLocalVideoStream().getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
+    });
+
     private internalRemoteStreams: WritableSignal<Record<string, StreamsType>> = signal<Record<string, StreamsType>>({});
     public remoteStreams: Signal<Record<string, StreamsType>> = computed<Record<string, StreamsType>>(() => this.internalRemoteStreams());
 
-    connect(roomId: string): void {
+    public connect(roomId: string): void {
         this.socket = io(environment.serverURL + "/meeting");
 
         this.socket.emit("join", roomId);
@@ -54,7 +61,7 @@ export class ConferenceWebsocket {
         });
     }
 
-    async getUserMedia(): Promise<void> {
+    public async getUserMedia(): Promise<void> {
         try {
             this.internalLocalAudioStream.set(await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }));
 
@@ -80,7 +87,37 @@ export class ConferenceWebsocket {
         }
     }
 
-    leave(roomId: string): void {
+    public toggleAudio(): void {
+        this.internalLocalAudioStream.update((localStream: MediaStream) => {
+            localStream.getAudioTracks().forEach((track: MediaStreamTrack) => {
+                track.enabled = !track.enabled;
+            });
+
+            const newStream: MediaStream = new MediaStream();
+            localStream.getAudioTracks().forEach((track: MediaStreamTrack) => {
+                newStream.addTrack(track);
+            });
+
+            return newStream;
+        });
+    }
+
+    public toggleVideo(): void {
+        this.internalLocalVideoStream.update((localStream: MediaStream) => {
+            localStream.getVideoTracks().forEach((track: MediaStreamTrack) => {
+                track.enabled = !track.enabled;
+            });
+
+            const newStream: MediaStream = new MediaStream();
+            localStream.getVideoTracks().forEach((track: MediaStreamTrack) => {
+                newStream.addTrack(track);
+            });
+
+            return newStream;
+        });
+    }
+
+    public leave(roomId: string): void {
         for (const socketId in this.peerConnections) {
             this.closePeer(socketId);
         }
@@ -115,6 +152,7 @@ export class ConferenceWebsocket {
                 }
 
                 updatedEntry.audioStream.addTrack(event.track);
+                updatedEntry.isAudioEnabled = event.track.enabled;
             }
             else if (event.track.kind == "video") {
                 if (!updatedEntry.videoStream) {
@@ -122,6 +160,7 @@ export class ConferenceWebsocket {
                 }
 
                 updatedEntry.videoStream.addTrack(event.track);
+                updatedEntry.isVideoEnabled = event.track.enabled;
             }
 
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({ ...streams, [socketId]: updatedEntry }));

@@ -2,6 +2,7 @@
     <div class="room__card">
         <div class="room__options">
             <div class="room__video">
+                @if (isVideoEnabled()) {
                 <video
                     class="video__element"
                     [srcObject]="localVideoStream()"
@@ -9,15 +10,16 @@
                     playsinline
                     muted
                 ></video>
+                }
             </div>
 
             <div class="room__controls">
                 <app-conference-controls-item
-                    [type]="'audio'"
+                    [item]="audioControlItem()"
                 ></app-conference-controls-item>
 
                 <app-conference-controls-item
-                    [type]="'video'"
+                    [item]="videoControlItem()"
                 ></app-conference-controls-item>
             </div>
         </div>
