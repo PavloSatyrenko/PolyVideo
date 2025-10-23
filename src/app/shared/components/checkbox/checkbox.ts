@@ -10,10 +10,8 @@ import { Component, input, InputSignal, model, ModelSignal, output, OutputEmitte
 export class Checkbox {
     public label: InputSignal<string> = input<string>("");
     public isDisabled: InputSignal<boolean> = input<boolean>(false);
-    
-    public value: ModelSignal<boolean> = model<boolean >(false);
 
-    public change: OutputEmitterRef<Event> = output<Event>();
+    public value: ModelSignal<boolean> = model<boolean>(false);
 
     protected onChange(event: Event): void {
         const newValue: boolean = (event.target as HTMLInputElement).checked;
@@ -21,6 +19,5 @@ export class Checkbox {
 
         event.preventDefault();
         event.stopPropagation();
-        this.change.emit(event);
     }
 }
