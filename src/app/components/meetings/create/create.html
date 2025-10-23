@@ -1,0 +1,18 @@
+<div class="meetings container">
+    <ui-title [title]="'Create Meeting'" [size]="'large'"></ui-title>
+
+    <div class="meetings__form">
+        <ui-input [(value)]="meetingName" [placeholder]="'Meeting Name'" [size]="'large'" [isFullWidth]="true" [theme]="'primary'"></ui-input>
+
+        <ui-checkbox [(value)]="isPlanned" [label]="'Schedule meeting'"></ui-checkbox>
+
+        <ui-button
+            [label]="submitButtonText()"
+            [icon]="'fa-solid fa-arrow-right'"
+            [size]="'large'"
+            [isFullWidth]="true"
+            [type]="'primary'"
+            (click)="createMeeting()"
+        ></ui-button>
+    </div>
+</div>
