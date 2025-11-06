@@ -10,20 +10,24 @@ export class ConferenceWebsocket {
     private socket!: Socket;
     private peerConnections: Record<string, RTCPeerConnection> = {};
 
-    private internalLocalAudioStream: WritableSignal<MediaStream> = signal(new MediaStream());
-    private internalLocalVideoStream: WritableSignal<MediaStream> = signal(new MediaStream());
-    public localAudioStream: Signal<MediaStream> = computed<MediaStream>(() => this.internalLocalAudioStream());
-    public localVideoStream: Signal<MediaStream> = computed<MediaStream>(() => this.internalLocalVideoStream());
+    private internalLocalStream: WritableSignal<MediaStream> = signal(new MediaStream());
+    public localStream: Signal<MediaStream> = computed<MediaStream>(() => this.internalLocalStream());
 
-    public isAudioEnabled: Signal<boolean> = computed<boolean>(() => {
-        return this.internalLocalAudioStream().getAudioTracks().some((track: MediaStreamTrack) => track.enabled);
+    private internalMetaData: WritableSignal<{ version: number, isVideoEnabled: boolean, isAudioEnabled: boolean }> = signal({
+        version: 0,
+        isVideoEnabled: false,
+        isAudioEnabled: false
     });
-    public isVideoEnabled: Signal<boolean> = computed<boolean>(() => {
-        return this.internalLocalVideoStream().getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
-    });
+    public isAudioEnabled: Signal<boolean> = computed<boolean>(() => this.internalMetaData().isAudioEnabled);
+    public isVideoEnabled: Signal<boolean> = computed<boolean>(() => this.internalMetaData().isVideoEnabled);
+
+    private internalDevices: WritableSignal<MediaDeviceInfo[]> = signal<MediaDeviceInfo[]>([]);
+    public devices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => this.internalDevices());
 
     private internalRemoteStreams: WritableSignal<Record<string, StreamsType>> = signal<Record<string, StreamsType>>({});
     public remoteStreams: Signal<Record<string, StreamsType>> = computed<Record<string, StreamsType>>(() => this.internalRemoteStreams());
+
+    private peerConnectionStatus: Record<string, boolean> = {};
 
     public connect(roomId: string): void {
         this.socket = io(environment.serverURL + "/meeting");
@@ -56,6 +60,50 @@ export class ConferenceWebsocket {
             await this.peerConnections[data.socketId].addIceCandidate(new RTCIceCandidate(data.candidate));
         });
 
+        this.socket.on("mute", (socketId: string) => {
+            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+                ...streams,
+                [socketId]: {
+                    stream: streams[socketId]?.stream ?? new MediaStream(),
+                    isVideoEnabled: streams[socketId]?.isVideoEnabled ?? false,
+                    isAudioEnabled: false
+                }
+            }));
+        });
+
+        this.socket.on("unmute", (socketId: string) => {
+            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+                ...streams,
+                [socketId]: {
+                    stream: streams[socketId]?.stream ?? new MediaStream(),
+                    isVideoEnabled: streams[socketId]?.isVideoEnabled ?? false,
+                    isAudioEnabled: true,
+                }
+            }));
+        });
+
+        this.socket.on("disable-video", (socketId: string) => {
+            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+                ...streams,
+                [socketId]: {
+                    stream: streams[socketId]?.stream ?? new MediaStream(),
+                    isVideoEnabled: false,
+                    isAudioEnabled: streams[socketId]?.isAudioEnabled ?? false,
+                }
+            }));
+        });
+
+        this.socket.on("enable-video", (socketId: string) => {
+            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+                ...streams,
+                [socketId]: {
+                    stream: streams[socketId]?.stream ?? new MediaStream(),
+                    isVideoEnabled: true,
+                    isAudioEnabled: streams[socketId]?.isAudioEnabled ?? false,
+                }
+            }));
+        });
+
         this.socket.on("user-leave", (socketId: string) => {
             this.closePeer(socketId);
         });
@@ -63,24 +111,30 @@ export class ConferenceWebsocket {
 
     public async getUserMedia(): Promise<void> {
         try {
-            this.internalLocalAudioStream.set(await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }));
-
-            const videoConstraints = {
-                video: {
-                    width: { ideal: 1920, max: 1920 },
-                    height: { ideal: 1080, max: 1080 },
-                    frameRate: { ideal: 30, max: 60 },
-                    facingMode: "user"
+            const stream: MediaStream = await navigator.mediaDevices.getUserMedia(
+                {
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    },
+                    video: {
+                        width: { ideal: 1920, max: 1920 },
+                        height: { ideal: 1080, max: 1080 },
+                        frameRate: { ideal: 30, max: 60 },
+                        facingMode: "user"
+                    }
                 }
-            };
+            );
 
-            try {
-                this.internalLocalVideoStream.set(await navigator.mediaDevices.getUserMedia(videoConstraints));
-            }
-            catch (highResError) {
-                console.warn("High resolution not available, falling back to default:", highResError);
-                this.internalLocalVideoStream.set(await navigator.mediaDevices.getUserMedia({ video: true }));
-            }
+            this.internalLocalStream.set(stream);
+
+            this.internalMetaData.set({
+                version: this.internalMetaData().version + 1,
+                isVideoEnabled: stream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled),
+                isAudioEnabled: stream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled),
+            });
+
+            this.internalDevices.set(await navigator.mediaDevices.enumerateDevices());
         }
         catch (error) {
             console.error("getUserMedia error", error);
@@ -88,33 +142,39 @@ export class ConferenceWebsocket {
     }
 
     public toggleAudio(): void {
-        this.internalLocalAudioStream.update((localStream: MediaStream) => {
-            localStream.getAudioTracks().forEach((track: MediaStreamTrack) => {
-                track.enabled = !track.enabled;
-            });
+        const stream: MediaStream = this.internalLocalStream();
 
-            const newStream: MediaStream = new MediaStream();
-            localStream.getAudioTracks().forEach((track: MediaStreamTrack) => {
-                newStream.addTrack(track);
-            });
-
-            return newStream;
+        stream.getAudioTracks().forEach((track: MediaStreamTrack) => {
+            track.enabled = !track.enabled;
         });
+
+        this.internalMetaData.update((metaData) => ({
+            version: metaData.version + 1,
+            isVideoEnabled: metaData.isVideoEnabled,
+            isAudioEnabled: stream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled),
+        }));
+
+        this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
     }
 
     public toggleVideo(): void {
-        this.internalLocalVideoStream.update((localStream: MediaStream) => {
-            localStream.getVideoTracks().forEach((track: MediaStreamTrack) => {
-                track.enabled = !track.enabled;
-            });
+        const stream: MediaStream = this.internalLocalStream();
 
-            const newStream: MediaStream = new MediaStream();
-            localStream.getVideoTracks().forEach((track: MediaStreamTrack) => {
-                newStream.addTrack(track);
-            });
-
-            return newStream;
+        stream.getVideoTracks().forEach((track: MediaStreamTrack) => {
+            track.enabled = !track.enabled;
         });
+
+        this.internalMetaData.update((metaData) => ({
+            version: metaData.version + 1,
+            isVideoEnabled: stream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled),
+            isAudioEnabled: metaData.isAudioEnabled,
+        }));
+
+        this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
+    }
+
+    public toggleScreenShare(): void {
+
     }
 
     public leave(roomId: string): void {
@@ -133,35 +193,25 @@ export class ConferenceWebsocket {
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
 
-        this.internalLocalAudioStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
+        this.internalLocalStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
+            track.enabled = this.isAudioEnabled();
             peerConnection.addTrack(track);
         });
 
-        this.internalLocalVideoStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
+        this.internalLocalStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
+            track.enabled = this.isVideoEnabled();
             peerConnection.addTrack(track);
         });
 
         peerConnection.ontrack = (event: RTCTrackEvent) => {
             const currentRemoteStreams: Record<string, StreamsType> = this.internalRemoteStreams();
 
-            const updatedEntry: StreamsType = { ...(currentRemoteStreams[socketId] ?? { videoStream: new MediaStream(), audioStream: new MediaStream() }) }
+            const updatedEntry: StreamsType = { ...(currentRemoteStreams[socketId] ?? { stream: new MediaStream() }) }
 
-            if (event.track.kind == "audio") {
-                if (!updatedEntry.audioStream) {
-                    updatedEntry.audioStream = new MediaStream();
-                }
+            updatedEntry.stream.addTrack(event.track);
 
-                updatedEntry.audioStream.addTrack(event.track);
-                updatedEntry.isAudioEnabled = event.track.enabled;
-            }
-            else if (event.track.kind == "video") {
-                if (!updatedEntry.videoStream) {
-                    updatedEntry.videoStream = new MediaStream();
-                }
-
-                updatedEntry.videoStream.addTrack(event.track);
-                updatedEntry.isVideoEnabled = event.track.enabled;
-            }
+            updatedEntry.isAudioEnabled = updatedEntry.stream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled);
+            updatedEntry.isVideoEnabled = updatedEntry.stream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
 
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({ ...streams, [socketId]: updatedEntry }));
         }
@@ -173,8 +223,21 @@ export class ConferenceWebsocket {
         };
 
         peerConnection.onconnectionstatechange = () => {
-            if (peerConnection.connectionState == "connected") {
-                console.log("Peers connected");
+            if (peerConnection.connectionState === "connected" && !this.peerConnectionStatus[socketId]) {
+                this.peerConnectionStatus[socketId] = true;
+
+                peerConnection.getSenders().forEach((sender: RTCRtpSender) => {
+                    if (sender.track?.kind === "audio") {
+                        sender.track.enabled = this.isAudioEnabled();
+                    }
+
+                    if (sender.track?.kind === "video") {
+                        sender.track.enabled = this.isVideoEnabled();
+                    }
+                });
+
+                this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
+                this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
             }
         };
 
@@ -185,11 +248,7 @@ export class ConferenceWebsocket {
         const streamEntry: StreamsType = this.internalRemoteStreams()[socketId];
 
         if (streamEntry) {
-            streamEntry.audioStream?.getAudioTracks().forEach((track: MediaStreamTrack) => {
-                track.stop();
-            });
-
-            streamEntry.videoStream?.getVideoTracks().forEach((track: MediaStreamTrack) => {
+            streamEntry.stream.getTracks().forEach((track: MediaStreamTrack) => {
                 track.stop();
             });
         }

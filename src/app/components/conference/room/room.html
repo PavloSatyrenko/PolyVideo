@@ -10,7 +10,7 @@
     </div>
 
     <div class="conference__controls">
-        @for(item of controlsItems(); track item) {
+        @for(item of controlsItems(); track item.type) {
         <app-conference-controls-item
             [item]="item"
         ></app-conference-controls-item>

@@ -20,4 +20,8 @@ export class ControlsItem {
     protected toggleVideo(): void {
         this.conferenceWebSocket.toggleVideo();
     }
+
+    protected toggleScreenShare(): void {
+        this.conferenceWebSocket.toggleScreenShare();
+    }
 }

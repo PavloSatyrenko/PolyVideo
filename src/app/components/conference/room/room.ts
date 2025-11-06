@@ -74,27 +74,89 @@ export class Room {
         effect(() => {
             const remoteStreams: Record<string, StreamsType> = this.conferenceWebSocket.remoteStreams();
 
-            const updatedParticipants: ParticipantType[] = Object.entries(remoteStreams).map(([socketId, streams]: [string, StreamsType]) => ({
-                id: socketId,
-                name: `User ${socketId.substring(0, 5)}`,
-                isAudioEnabled: streams.isAudioEnabled,
-                isVideoEnabled: streams.isVideoEnabled,
-                audioStream: streams.audioStream,
-                videoStream: streams.videoStream,
-                isMoved: false,
-                isLocal: false,
-            }));
+            const participants: ParticipantType[] = untracked(this.participants);
 
-            updatedParticipants.push({
-                id: "local",
-                name: "You",
-                isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                audioStream: this.conferenceWebSocket.localAudioStream(),
-                videoStream: this.conferenceWebSocket.localVideoStream(),
-                isMoved: false,
-                isLocal: true
+            const updatedParticipants: ParticipantType[] = Object.entries(remoteStreams).map(([socketId, streams]: [string, StreamsType]) => {
+                const participant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.id === socketId);
+
+                if (participant) {
+                    const currentVideoStreamTracks: MediaStreamTrack[] = participant.videoStream.getVideoTracks();
+
+                    const newVideoStreamTracks: MediaStreamTrack[] = remoteStreams[socketId].stream.getVideoTracks();
+
+                    for (const track of newVideoStreamTracks) {
+                        if (!currentVideoStreamTracks.includes(track)) {
+                            participant.videoStream.addTrack(track);
+                        }
+                    }
+
+                    for (const track of currentVideoStreamTracks) {
+                        if (!newVideoStreamTracks.includes(track)) {
+                            participant.videoStream.removeTrack(track);
+                        }
+                    }
+
+                    return {
+                        ...participant,
+                        isAudioEnabled: remoteStreams[participant.id].isAudioEnabled,
+                        isVideoEnabled: remoteStreams[participant.id].isVideoEnabled,
+                    };
+                }
+                else {
+                    return {
+                        id: socketId,
+                        name: `User ${socketId.substring(0, 5)}`,
+                        isAudioEnabled: streams.isAudioEnabled,
+                        isVideoEnabled: streams.isVideoEnabled,
+                        audioStream: streams.stream,
+                        videoStream: new MediaStream(streams.stream.getVideoTracks()),
+                        isMoved: false,
+                        isLocal: false,
+                    };
+                }
             });
+
+            let localParticipant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.isLocal);
+
+            if (localParticipant) {
+                const currentVideoStreamTracks: MediaStreamTrack[] = localParticipant.videoStream.getVideoTracks();
+
+                const newVideoStreamTracks: MediaStreamTrack[] = this.conferenceWebSocket.localStream().getVideoTracks();
+
+                for (const track of newVideoStreamTracks) {
+                    if (!currentVideoStreamTracks.includes(track)) {
+                        localParticipant.videoStream.addTrack(track);
+                    }
+                }
+
+                for (const track of currentVideoStreamTracks) {
+                    if (!newVideoStreamTracks.includes(track)) {
+                        localParticipant.videoStream.removeTrack(track);
+                    }
+                }
+
+                localParticipant = {
+                    ...localParticipant,
+                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
+                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
+                };
+            }
+            else {
+                const localVideoStreamTracks: MediaStreamTrack[] = this.conferenceWebSocket.localStream().getVideoTracks();
+
+                localParticipant = {
+                    id: "local",
+                    name: "You",
+                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
+                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
+                    audioStream: new MediaStream(),
+                    videoStream: new MediaStream(localVideoStreamTracks),
+                    isMoved: false,
+                    isLocal: true
+                };
+            }
+
+            updatedParticipants.push(localParticipant);
 
             this.participants.set(updatedParticipants);
         });
