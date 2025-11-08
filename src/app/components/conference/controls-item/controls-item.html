@@ -17,9 +17,9 @@
 } @else if (item().type == "screen") {
 <button class="control__button" (click)="toggleScreenShare()">
     @if (item().isEnabled) {
-    <i class="control__icon fa-solid fa-desktop"></i>
-    } @else {
     <i class="control__icon fa-solid fa-ban"></i>
+    } @else {
+    <i class="control__icon fa-solid fa-desktop"></i>
     }
 </button>
 } @else if (item().type == "participants") {

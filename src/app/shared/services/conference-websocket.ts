@@ -3,6 +3,13 @@ import { io, Socket } from "socket.io-client";
 import { environment } from "@shared/environments/environment";
 import { StreamsType } from "@shared/types/StreamsType";
 
+type MetaDataType = {
+    version: number;
+    isVideoEnabled: boolean;
+    isAudioEnabled: boolean;
+    isScreenSharing: boolean;
+};
+
 @Injectable({
     providedIn: "root"
 })
@@ -10,16 +17,39 @@ export class ConferenceWebsocket {
     private socket!: Socket;
     private peerConnections: Record<string, RTCPeerConnection> = {};
 
-    private internalLocalStream: WritableSignal<MediaStream> = signal(new MediaStream());
-    public localStream: Signal<MediaStream> = computed<MediaStream>(() => this.internalLocalStream());
-
-    private internalMetaData: WritableSignal<{ version: number, isVideoEnabled: boolean, isAudioEnabled: boolean }> = signal({
-        version: 0,
-        isVideoEnabled: false,
-        isAudioEnabled: false
+    private internalLocalVideoTrigger: WritableSignal<number> = signal(0);
+    private internalLocalVideoStream: WritableSignal<MediaStream> = signal(new MediaStream());
+    public localVideoStream: Signal<MediaStream> = computed<MediaStream>(() => {
+        this.internalLocalVideoTrigger();
+        return this.internalLocalVideoStream();
     });
-    public isAudioEnabled: Signal<boolean> = computed<boolean>(() => this.internalMetaData().isAudioEnabled);
-    public isVideoEnabled: Signal<boolean> = computed<boolean>(() => this.internalMetaData().isVideoEnabled);
+
+    private internalLocalAudioTrigger: WritableSignal<number> = signal(0);
+    private internalLocalAudioStream: WritableSignal<MediaStream> = signal(new MediaStream());
+    public localAudioStream: Signal<MediaStream> = computed<MediaStream>(() => {
+        this.internalLocalAudioTrigger();
+        return this.internalLocalAudioStream();
+    });
+
+    private internalLocalScreenShareTrigger: WritableSignal<number> = signal(0);
+    private internalLocalScreenShareStream: WritableSignal<MediaStream> = signal(new MediaStream());
+    public localScreenShareStream: Signal<MediaStream> = computed<MediaStream>(() => {
+        this.internalLocalScreenShareTrigger();
+        return this.internalLocalScreenShareStream();
+    });
+
+    public isVideoEnabled: Signal<boolean> = computed<boolean>(() => {
+        this.internalLocalVideoTrigger();
+        return this.internalLocalVideoStream().getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
+    });
+    public isAudioEnabled: Signal<boolean> = computed<boolean>(() => {
+        this.internalLocalAudioTrigger();
+        return this.internalLocalAudioStream().getAudioTracks().some((track: MediaStreamTrack) => track.enabled);
+    });
+    public isScreenSharing: Signal<boolean> = computed<boolean>(() => {
+        this.internalLocalScreenShareTrigger();
+        return this.internalLocalScreenShareStream().getTracks().length > 0;
+    });
 
     private internalDevices: WritableSignal<MediaDeviceInfo[]> = signal<MediaDeviceInfo[]>([]);
     public devices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => this.internalDevices());
@@ -28,6 +58,7 @@ export class ConferenceWebsocket {
     public remoteStreams: Signal<Record<string, StreamsType>> = computed<Record<string, StreamsType>>(() => this.internalRemoteStreams());
 
     private peerConnectionStatus: Record<string, boolean> = {};
+    private peerConnectionNegotiation: Record<string, boolean> = {};
 
     public connect(roomId: string): void {
         this.socket = io(environment.serverURL + "/meeting");
@@ -37,36 +68,72 @@ export class ConferenceWebsocket {
         this.socket.on("new-user", async (socketId: string) => {
             this.peerConnections[socketId] = this.createPeerConnection(socketId);
 
-            const offer: RTCSessionDescriptionInit = await this.peerConnections[socketId].createOffer();
-            await this.peerConnections[socketId].setLocalDescription(offer);
-            this.socket.emit("offer", { socketId: socketId, offer: offer });
+            this.peerConnectionNegotiation[socketId] = true;
+
+            try {
+                const offer: RTCSessionDescriptionInit = await this.peerConnections[socketId].createOffer();
+                await this.peerConnections[socketId].setLocalDescription(offer);
+                this.socket.emit("offer", { socketId: socketId, offer: offer });
+            }
+            catch (error) {
+                console.error("Error during offer handling", error);
+                this.peerConnectionNegotiation[socketId] = false;
+            }
         });
 
         this.socket.on("offer", async (data: { socketId: string, offer: RTCSessionDescriptionInit }) => {
-            this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
+            if (!this.peerConnections[data.socketId]) {
+                this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
+            }
 
-            await this.peerConnections[data.socketId].setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createAnswer();
-            await this.peerConnections[data.socketId].setLocalDescription(answer);
+            this.peerConnectionNegotiation[data.socketId] = true;
 
-            this.socket.emit("answer", { socketId: data.socketId, answer: answer });
+            try {
+                await this.peerConnections[data.socketId].setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createAnswer();
+                await this.peerConnections[data.socketId].setLocalDescription(answer);
+
+                this.peerConnectionNegotiation[data.socketId] = false;
+
+                this.socket.emit("answer", { socketId: data.socketId, answer: answer });
+            }
+            catch (error) {
+                console.error("Error during offer handling", error);
+                this.peerConnectionNegotiation[data.socketId] = false;
+            }
         });
 
         this.socket.on("answer", async (data: { socketId: string, answer: RTCSessionDescriptionInit }) => {
-            await this.peerConnections[data.socketId].setRemoteDescription(new RTCSessionDescription(data.answer));
+            try {
+                await this.peerConnections[data.socketId].setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+            catch (error) {
+                console.error("Error during answer handling", error);
+            }
+            finally {
+                this.peerConnectionNegotiation[data.socketId] = false;
+            }
         });
 
         this.socket.on("iceCandidate", async (data: { socketId: string, candidate: RTCIceCandidate }) => {
-            await this.peerConnections[data.socketId].addIceCandidate(new RTCIceCandidate(data.candidate));
+            if (!this.peerConnections[data.socketId]) {
+                return;
+            }
+
+            try {
+                await this.peerConnections[data.socketId].addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+            catch (error) {
+                console.error("Error adding received ice candidate", error);
+            }
         });
 
         this.socket.on("mute", (socketId: string) => {
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
                 ...streams,
                 [socketId]: {
-                    stream: streams[socketId]?.stream ?? new MediaStream(),
-                    isVideoEnabled: streams[socketId]?.isVideoEnabled ?? false,
-                    isAudioEnabled: false
+                    ...streams[socketId],
+                    isAudioEnabled: false,
                 }
             }));
         });
@@ -75,8 +142,7 @@ export class ConferenceWebsocket {
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
                 ...streams,
                 [socketId]: {
-                    stream: streams[socketId]?.stream ?? new MediaStream(),
-                    isVideoEnabled: streams[socketId]?.isVideoEnabled ?? false,
+                    ...streams[socketId],
                     isAudioEnabled: true,
                 }
             }));
@@ -86,9 +152,8 @@ export class ConferenceWebsocket {
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
                 ...streams,
                 [socketId]: {
-                    stream: streams[socketId]?.stream ?? new MediaStream(),
+                    ...streams[socketId],
                     isVideoEnabled: false,
-                    isAudioEnabled: streams[socketId]?.isAudioEnabled ?? false,
                 }
             }));
         });
@@ -97,9 +162,28 @@ export class ConferenceWebsocket {
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
                 ...streams,
                 [socketId]: {
-                    stream: streams[socketId]?.stream ?? new MediaStream(),
+                    ...streams[socketId],
                     isVideoEnabled: true,
-                    isAudioEnabled: streams[socketId]?.isAudioEnabled ?? false,
+                }
+            }));
+        });
+
+        this.socket.on("start-screen-share", (socketId: string) => {
+            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+                ...streams,
+                [socketId]: {
+                    ...streams[socketId],
+                    isScreenSharing: true
+                }
+            }));
+        });
+
+        this.socket.on("stop-screen-share", (socketId: string) => {
+            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+                ...streams,
+                [socketId]: {
+                    ...streams[socketId],
+                    isScreenSharing: false
                 }
             }));
         });
@@ -126,13 +210,11 @@ export class ConferenceWebsocket {
                 }
             );
 
-            this.internalLocalStream.set(stream);
+            this.internalLocalVideoStream.set(new MediaStream(stream.getVideoTracks()));
+            this.internalLocalVideoTrigger.update((value: number) => value + 1);
 
-            this.internalMetaData.set({
-                version: this.internalMetaData().version + 1,
-                isVideoEnabled: stream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled),
-                isAudioEnabled: stream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled),
-            });
+            this.internalLocalAudioStream.set(new MediaStream(stream.getAudioTracks()));
+            this.internalLocalAudioTrigger.update((value: number) => value + 1);
 
             this.internalDevices.set(await navigator.mediaDevices.enumerateDevices());
         }
@@ -141,40 +223,82 @@ export class ConferenceWebsocket {
         }
     }
 
-    public toggleAudio(): void {
-        const stream: MediaStream = this.internalLocalStream();
-
-        stream.getAudioTracks().forEach((track: MediaStreamTrack) => {
-            track.enabled = !track.enabled;
-        });
-
-        this.internalMetaData.update((metaData) => ({
-            version: metaData.version + 1,
-            isVideoEnabled: metaData.isVideoEnabled,
-            isAudioEnabled: stream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled),
-        }));
-
-        this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
-    }
-
     public toggleVideo(): void {
-        const stream: MediaStream = this.internalLocalStream();
-
-        stream.getVideoTracks().forEach((track: MediaStreamTrack) => {
+        this.internalLocalVideoStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
             track.enabled = !track.enabled;
         });
 
-        this.internalMetaData.update((metaData) => ({
-            version: metaData.version + 1,
-            isVideoEnabled: stream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled),
-            isAudioEnabled: metaData.isAudioEnabled,
-        }));
+        this.internalLocalVideoTrigger.update((value: number) => value + 1);
 
         this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
     }
 
-    public toggleScreenShare(): void {
+    public toggleAudio(): void {
+        this.internalLocalAudioStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
+            track.enabled = !track.enabled;
+        });
 
+        this.internalLocalAudioTrigger.update((value: number) => value + 1);
+
+        this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
+    }
+
+    public async toggleScreenShare(): Promise<void> {
+        if (this.isScreenSharing()) {
+            await this.stopScreenShare();
+        }
+        else {
+            await this.startScreenShare();
+        }
+    }
+
+    private async startScreenShare(): Promise<void> {
+        try {
+            const screenStream: MediaStream = await navigator.mediaDevices.getDisplayMedia();
+
+            screenStream.getTracks().forEach((track: MediaStreamTrack) => {
+                track.onended = async () => {
+                    await this.stopScreenShare();
+                };
+            });
+
+            this.internalLocalScreenShareStream.set(screenStream);
+
+            this.internalLocalScreenShareTrigger.update((value: number) => value + 1);
+
+            for (const peerConnection of Object.values(this.peerConnections)) {
+                screenStream.getTracks().forEach((track: MediaStreamTrack) => {
+                    peerConnection.addTrack(track, screenStream);
+                });
+            }
+
+            this.socket?.emit("start-screen-share");
+        }
+        catch (error) {
+            console.error("toggleScreenShare error", error);
+        }
+    }
+
+    private async stopScreenShare(): Promise<void> {
+        const tracks: MediaStreamTrack[] = this.internalLocalScreenShareStream().getTracks();
+
+        tracks.forEach((track: MediaStreamTrack) => track.stop());
+
+        for (const peerConnection of Object.values(this.peerConnections)) {
+            for (const track of tracks) {
+                const sender: RTCRtpSender | undefined = peerConnection.getSenders().find((sender: RTCRtpSender) => sender.track === track);
+
+                if (sender) {
+                    peerConnection.removeTrack(sender);
+                }
+            }
+        }
+
+        this.internalLocalScreenShareStream.set(new MediaStream());
+
+        this.internalLocalScreenShareTrigger.update((value: number) => value + 1);
+
+        this.socket?.emit("stop-screen-share");
     }
 
     public leave(roomId: string): void {
@@ -193,25 +317,46 @@ export class ConferenceWebsocket {
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
 
-        this.internalLocalStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
-            track.enabled = this.isAudioEnabled();
+        this.internalLocalAudioStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
             peerConnection.addTrack(track);
         });
 
-        this.internalLocalStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
-            track.enabled = this.isVideoEnabled();
+        this.internalLocalVideoStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
+            peerConnection.addTrack(track);
+        });
+
+        this.internalLocalScreenShareStream().getTracks().forEach((track: MediaStreamTrack) => {
             peerConnection.addTrack(track);
         });
 
         peerConnection.ontrack = (event: RTCTrackEvent) => {
+            console.log(event, event.track.getSettings())
             const currentRemoteStreams: Record<string, StreamsType> = this.internalRemoteStreams();
 
-            const updatedEntry: StreamsType = { ...(currentRemoteStreams[socketId] ?? { stream: new MediaStream() }) }
+            const updatedEntry: StreamsType = {
+                ...(currentRemoteStreams[socketId] ?? {
+                    videoStream: new MediaStream(),
+                    audioStream: new MediaStream(),
+                    screenShareStream: new MediaStream()
+                })
+            };
 
-            updatedEntry.stream.addTrack(event.track);
+            if (event.track.kind === "audio") {
+                updatedEntry.audioStream.addTrack(event.track);
+            }
 
-            updatedEntry.isAudioEnabled = updatedEntry.stream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled);
-            updatedEntry.isVideoEnabled = updatedEntry.stream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
+            if (event.track.kind === "video") {
+                if (event.streams.length) {
+                    updatedEntry.screenShareStream.addTrack(event.track);
+                }
+                else {
+                    updatedEntry.videoStream.addTrack(event.track);
+                }
+            }
+
+            updatedEntry.isAudioEnabled = updatedEntry.audioStream.getAudioTracks().some((track: MediaStreamTrack) => track.enabled);
+            updatedEntry.isVideoEnabled = updatedEntry.videoStream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
+            updatedEntry.isScreenSharing = updatedEntry.screenShareStream.getTracks().length > 0;
 
             this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({ ...streams, [socketId]: updatedEntry }));
         }
@@ -238,6 +383,25 @@ export class ConferenceWebsocket {
 
                 this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
                 this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
+                this.socket?.emit((this.isScreenSharing() ? "start-screen-share" : "stop-screen-share"));
+            }
+        };
+
+        peerConnection.onnegotiationneeded = async () => {
+            try {
+                if (this.peerConnectionNegotiation[socketId] || peerConnection.signalingState !== "stable") {
+                    return;
+                }
+
+                this.peerConnectionNegotiation[socketId] = true;
+
+                const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                this.socket.emit("offer", { socketId, offer });
+            }
+            catch (error) {
+                console.error("Negotiation failed", error);
+                this.peerConnectionNegotiation[socketId] = false;
             }
         };
 
@@ -248,7 +412,15 @@ export class ConferenceWebsocket {
         const streamEntry: StreamsType = this.internalRemoteStreams()[socketId];
 
         if (streamEntry) {
-            streamEntry.stream.getTracks().forEach((track: MediaStreamTrack) => {
+            streamEntry.audioStream.getTracks().forEach((track: MediaStreamTrack) => {
+                track.stop();
+            });
+
+            streamEntry.videoStream.getTracks().forEach((track: MediaStreamTrack) => {
+                track.stop();
+            });
+
+            streamEntry.screenShareStream.getTracks().forEach((track: MediaStreamTrack) => {
                 track.stop();
             });
         }
@@ -262,6 +434,14 @@ export class ConferenceWebsocket {
         if (this.peerConnections[socketId]) {
             this.peerConnections[socketId].close();
             delete this.peerConnections[socketId];
+        }
+
+        if (this.peerConnectionStatus[socketId]) {
+            delete this.peerConnectionStatus[socketId];
+        }
+
+        if (this.peerConnectionNegotiation[socketId]) {
+            delete this.peerConnectionNegotiation[socketId];
         }
     }
 }

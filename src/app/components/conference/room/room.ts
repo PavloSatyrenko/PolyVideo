@@ -30,7 +30,7 @@ export class Room {
         },
         {
             type: "screen",
-            isEnabled: false
+            isEnabled: this.conferenceWebSocket.isScreenSharing()
         },
         {
             type: "participants",
@@ -76,13 +76,29 @@ export class Room {
 
             const participants: ParticipantType[] = untracked(this.participants);
 
+            const screenStreams: ParticipantType[] = [];
+
             const updatedParticipants: ParticipantType[] = Object.entries(remoteStreams).map(([socketId, streams]: [string, StreamsType]) => {
                 const participant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.id === socketId);
+
+                if (streams.isScreenSharing) {
+                    screenStreams.push({
+                        id: socketId + "-screen",
+                        name: `User ${socketId.substring(0, 5)} Screen`,
+                        isAudioEnabled: false,
+                        isVideoEnabled: true,
+                        audioStream: new MediaStream(),
+                        videoStream: streams.screenShareStream,
+                        isMoved: false,
+                        isLocal: false,
+                        isScreen: true
+                    });
+                }
 
                 if (participant) {
                     const currentVideoStreamTracks: MediaStreamTrack[] = participant.videoStream.getVideoTracks();
 
-                    const newVideoStreamTracks: MediaStreamTrack[] = remoteStreams[socketId].stream.getVideoTracks();
+                    const newVideoStreamTracks: MediaStreamTrack[] = remoteStreams[socketId].videoStream.getVideoTracks();
 
                     for (const track of newVideoStreamTracks) {
                         if (!currentVideoStreamTracks.includes(track)) {
@@ -108,55 +124,42 @@ export class Room {
                         name: `User ${socketId.substring(0, 5)}`,
                         isAudioEnabled: streams.isAudioEnabled,
                         isVideoEnabled: streams.isVideoEnabled,
-                        audioStream: streams.stream,
-                        videoStream: new MediaStream(streams.stream.getVideoTracks()),
+                        audioStream: streams.audioStream,
+                        videoStream: streams.videoStream,
                         isMoved: false,
                         isLocal: false,
+                        isScreen: false
                     };
                 }
             });
 
-            let localParticipant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.isLocal);
+            updatedParticipants.push(...screenStreams);
 
-            if (localParticipant) {
-                const currentVideoStreamTracks: MediaStreamTrack[] = localParticipant.videoStream.getVideoTracks();
+            updatedParticipants.push({
+                id: "local",
+                name: "You",
+                isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
+                isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
+                audioStream: new MediaStream(),
+                videoStream: this.conferenceWebSocket.localVideoStream(),
+                isMoved: false,
+                isLocal: true,
+                isScreen: false
+            });
 
-                const newVideoStreamTracks: MediaStreamTrack[] = this.conferenceWebSocket.localStream().getVideoTracks();
-
-                for (const track of newVideoStreamTracks) {
-                    if (!currentVideoStreamTracks.includes(track)) {
-                        localParticipant.videoStream.addTrack(track);
-                    }
-                }
-
-                for (const track of currentVideoStreamTracks) {
-                    if (!newVideoStreamTracks.includes(track)) {
-                        localParticipant.videoStream.removeTrack(track);
-                    }
-                }
-
-                localParticipant = {
-                    ...localParticipant,
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                };
-            }
-            else {
-                const localVideoStreamTracks: MediaStreamTrack[] = this.conferenceWebSocket.localStream().getVideoTracks();
-
-                localParticipant = {
-                    id: "local",
-                    name: "You",
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
+            if (this.conferenceWebSocket.isScreenSharing()) {
+                updatedParticipants.push({
+                    id: "local-screen",
+                    name: "Your Screen",
+                    isAudioEnabled: false,
+                    isVideoEnabled: true,
                     audioStream: new MediaStream(),
-                    videoStream: new MediaStream(localVideoStreamTracks),
+                    videoStream: this.conferenceWebSocket.localScreenShareStream(),
                     isMoved: false,
-                    isLocal: true
-                };
+                    isLocal: true,
+                    isScreen: true
+                });
             }
-
-            updatedParticipants.push(localParticipant);
 
             this.participants.set(updatedParticipants);
         });
