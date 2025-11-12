@@ -26,6 +26,8 @@
     --element-hover-color: #383855;
 
     --primary-text-color: #f1f1f1;
+
+    --error-color: #e63946;
 }
 
 * {
@@ -44,6 +46,7 @@ body {
     height: 100%;
     font-family: Arial, Helvetica, sans-serif;
     background-color: var(--background-color);
+    color: var(--primary-text-color);
 }
 
 .container {

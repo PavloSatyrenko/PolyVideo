@@ -34,6 +34,11 @@
     color: var(--secondary-color);
 }
 
-.input_theme_primary:hover {
+.input_theme_primary:not(.input_invalid):hover {
     border-color: var(--primary-hover-color);
+}
+
+.input_invalid {
+    color: var(--error-color);
+    border-color: var(--error-color);
 }

@@ -12,17 +12,21 @@ export class Input implements OnInit {
     public placeholder: InputSignal<string> = input<string>("");
     public size: InputSignal<"small" | "large"> = input<"small" | "large">("small");
     public theme: InputSignal<"default" | "primary"> = input<"default" | "primary">("primary");
-    public type: InputSignal<"text" | "number" | "password"> = input<"text" | "number" | "password">("text");
+    public type: InputSignal<"text" | "number" | "password" | "email"> = input<"text" | "number" | "password" | "email">("text");
     public minNumber: InputSignal<number> = input<number>(0);
     public maxNumber: InputSignal<number> = input<number>(Infinity);
     public name: InputSignal<string> = input<string>("");
     public autocomplete: InputSignal<string> = input<string>("off");
     public isFullWidth: InputSignal<boolean> = input<boolean>(false);
     public isDisabled: InputSignal<boolean> = input<boolean>(false);
+    public isValid: InputSignal<boolean> = input<boolean>(true);
 
-    protected inputType: Signal<"text" | "password"> = computed(() => {
+    protected inputType: Signal<"text" | "password" | "email"> = computed(() => {
         if (this.type() == "password") {
             return "password";
+        }
+        if (this.type() == "email") {
+            return "email";
         }
         return "text";
     });
