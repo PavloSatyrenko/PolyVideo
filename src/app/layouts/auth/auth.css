@@ -1,0 +1,19 @@
+.auth {
+    display: flex;
+    height: 100dvh;
+    width: 100%;
+}
+
+.auth__content {
+    width: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 64px;
+}
+
+.auth__background {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}

@@ -1,0 +1,80 @@
+<div class="signup">
+    <ui-title
+        class="signup__title"
+        [title]="'Create Account'"
+        [size]="'medium'"
+    ></ui-title>
+
+    <form class="signup__form">
+        <ui-input
+            [(value)]="name"
+            [placeholder]="'First Name'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [name]="'name'"
+            [isValid]="isFieldValid('name')"
+        ></ui-input>
+
+        <ui-input
+            [(value)]="surname"
+            [placeholder]="'Last Name'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [name]="'surname'"
+            [isValid]="isFieldValid('surname')"
+        ></ui-input>
+
+        <ui-input
+            [(value)]="email"
+            [placeholder]="'Email'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [type]="'email'"
+            [autocomplete]="'email'"
+            [name]="'email'"
+            [isValid]="isFieldValid('email')"
+        ></ui-input>
+
+        <ui-input
+            [(value)]="password"
+            [placeholder]="'Password'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [type]="'password'"
+            [autocomplete]="'new-password'"
+            [name]="'password'"
+            [isValid]="isFieldValid('password')"
+        ></ui-input>
+
+        <ui-input
+            [(value)]="confirmPassword"
+            [placeholder]="'Confirm Password'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [type]="'password'"
+            [autocomplete]="'new-password'"
+            [name]="'confirmPassword'"
+            [isValid]="isFieldValid('confirmPassword')"
+        ></ui-input>
+
+        <ui-button
+            class="signup__button"
+            [label]="'Sign Up'"
+            [icon]="'fa-solid fa-user-plus'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [type]="'primary'"
+            (click)="signUp()"
+        ></ui-button>
+
+        <span class="signup__redirect">
+            Already have an account?
+            <a class="redirect__link" [routerLink]="['/auth', 'login']">Log In</a>
+        </span>
+    </form>
+</div>

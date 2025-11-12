@@ -13,6 +13,10 @@ export const routes: Routes = [
                 loadChildren: () => import("./layouts/conference/conference.routes").then(m => m.conferenceRoutes)
             },
             {
+                path: "auth",
+                loadChildren: () => import("./layouts/auth/auth.routes").then(m => m.authRoutes)
+            },
+            {
                 path: "",
                 redirectTo: "workspace",
                 pathMatch: "full"

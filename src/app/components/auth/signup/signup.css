@@ -1,0 +1,33 @@
+:host {
+    width: 100%;
+}
+
+.signup {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.signup__title {
+    text-align: center;
+}
+
+.signup__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.signup__button {
+    margin-top: 16px;
+}
+
+.signup__redirect {
+    color: var(--primary-text-color);
+    text-align: center;
+}
+
+.redirect__link {
+    color: var(--primary-color);
+}

@@ -1,0 +1,48 @@
+<div class="login">
+    <ui-title
+        class="login__title"
+        [title]="'Welcome Back!'"
+        [size]="'medium'"
+    ></ui-title>
+
+    <form class="login__form">
+        <ui-input
+            [(value)]="email"
+            [placeholder]="'Email'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [type]="'email'"
+            [autocomplete]="'email'"
+            [name]="'email'"
+            [isValid]="isFieldValid('email')"
+        ></ui-input>
+
+        <ui-input
+            [(value)]="password"
+            [placeholder]="'Password'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+            [type]="'password'"
+            [autocomplete]="'password'"
+            [name]="'password'"
+            [isValid]="isFieldValid('password')"
+        ></ui-input>
+
+        <ui-button
+            class="login__button"
+            [label]="'Log In'"
+            [icon]="'fa-solid fa-right-to-bracket'"
+            [size]="'small'"
+            [isFullWidth]="true"
+            [type]="'primary'"
+            (click)="logIn()"
+        ></ui-button>
+
+        <span class="login__redirect">
+            Don't have an account?
+            <a class="redirect__link" [routerLink]="['/auth', 'signup']">Sign Up</a>
+        </span>
+    </form>
+</div>
