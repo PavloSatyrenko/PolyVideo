@@ -1,0 +1,18 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./out-tsc/spec",
+        "types": ["jasmine", "node"],
+        "baseUrl": "src/app",
+        "paths": {
+            "@shared/*": ["shared/*"],
+            "@core/*": ["core/*"],
+            "@layouts/*": ["layouts/*"],
+            "@pages/*": ["pages/*"],
+            "@components/*": ["components/*"]
+        }
+    },
+    "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
+}
