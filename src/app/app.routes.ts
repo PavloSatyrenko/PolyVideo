@@ -1,4 +1,5 @@
 import { Routes } from "@angular/router";
+import { authGuard } from "@shared/guards/auth-guard";
 
 export const routes: Routes = [
     {
@@ -6,6 +7,7 @@ export const routes: Routes = [
         children: [
             {
                 path: "workspace",
+                canActivate: [authGuard],
                 loadChildren: () => import("./layouts/workspace/workspace.routes").then(m => m.workspaceRoutes)
             },
             {
