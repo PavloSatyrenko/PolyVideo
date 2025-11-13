@@ -10,3 +10,17 @@
     gap: 16px;
     width: 100%;
 }
+
+.meetings__date {
+    display: flex;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.date__input {
+    width: calc(100% / 5 - 12px * 4 / 5);
+}
+
+:host ::ng-deep .date__input .input {
+    width: 100%;
+}

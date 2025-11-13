@@ -1,10 +1,73 @@
 <div class="meetings container">
     <ui-title [title]="'Create Meeting'" [size]="'large'"></ui-title>
 
-    <div class="meetings__form">
-        <ui-input [(value)]="meetingName" [placeholder]="'Meeting Name'" [size]="'large'" [isFullWidth]="true" [theme]="'primary'"></ui-input>
+    <form class="meetings__form">
+        <ui-input
+            [(value)]="meetingName"
+            [placeholder]="'Meeting Name'"
+            [size]="'large'"
+            [isFullWidth]="true"
+            [theme]="'primary'"
+        ></ui-input>
 
-        <ui-checkbox [(value)]="isPlanned" [label]="'Schedule meeting'"></ui-checkbox>
+        <ui-checkbox
+            [(value)]="isPlanned"
+            [label]="'Schedule meeting'"
+        ></ui-checkbox>
+
+        @if (isPlanned()) {
+        <div class="meetings__date">
+            <ui-input
+                class="date__input"
+                [(value)]="scheduledDay"
+                [placeholder]="'Day'"
+                [size]="'large'"
+                [theme]="'primary'"
+                [isValid]="isFieldValid('day') && isAllFieldsValid()"
+            >
+            </ui-input>
+
+            <ui-input
+                class="date__input"
+                [(value)]="scheduledMonth"
+                [placeholder]="'Month'"
+                [size]="'large'"
+                [theme]="'primary'"
+                [isValid]="isFieldValid('month') && isAllFieldsValid()"
+            >
+            </ui-input>
+
+            <ui-input
+                class="date__input"
+                [(value)]="scheduledYear"
+                [placeholder]="'Year'"
+                [size]="'large'"
+                [theme]="'primary'"
+                [isValid]="isFieldValid('year') && isAllFieldsValid()"
+            >
+            </ui-input>
+
+            <ui-input
+                class="date__input"
+                [(value)]="scheduledHour"
+                [placeholder]="'Hour'"
+                [size]="'large'"
+                [theme]="'primary'"
+                [isValid]="isFieldValid('hour') && isAllFieldsValid()"
+            >
+            </ui-input>
+
+            <ui-input
+                class="date__input"
+                [(value)]="scheduledMinute"
+                [placeholder]="'Minute'"
+                [size]="'large'"
+                [theme]="'primary'"
+                [isValid]="isFieldValid('minute')  && isAllFieldsValid()"
+            >
+            </ui-input>
+        </div>
+        }
 
         <ui-button
             [label]="submitButtonText()"
@@ -14,5 +77,5 @@
             [type]="'primary'"
             (click)="createMeeting()"
         ></ui-button>
-    </div>
+    </form>
 </div>
