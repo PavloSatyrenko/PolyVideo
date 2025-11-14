@@ -81,6 +81,8 @@ export class ConferenceWebsocket {
     public connect(roomId: string): void {
         this.socket = io(environment.serverURL + "/meeting");
 
+this.conferenceCode = roomCode;
+
         this.socket.emit("join", roomId);
 
         this.socket.on("new-user", async (socketId: string) => {
@@ -319,14 +321,14 @@ export class ConferenceWebsocket {
         this.socket?.emit("stop-screen-share");
     }
 
-    public leave(roomId: string): void {
+    public leave(): void {
         for (const socketId in this.peerConnections) {
             this.closePeer(socketId);
         }
 
         this.internalRemoteStreams.set({});
 
-        this.socket?.emit("leave", roomId);
+        this.socket?.emit("leave", this.conferenceCode);
         this.socket?.disconnect();
     }
 

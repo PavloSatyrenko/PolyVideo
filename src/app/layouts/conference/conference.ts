@@ -11,7 +11,7 @@ import { ConferenceWebsocket } from "@shared/services/conference-websocket";
     styleUrl: "./conference.css"
 })
 export class Conference implements OnInit, OnDestroy {
-    protected conferenceId: WritableSignal<string> = signal<string>("");
+    protected conferenceCode: WritableSignal<string> = signal<string>("");
 
     protected isConferenceExists: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isConferenceExists());
     protected isConnected: WritableSignal<boolean> = signal<boolean>(false);
@@ -39,18 +39,18 @@ export class Conference implements OnInit, OnDestroy {
             }
 
             if (roomCode) {
-                this.conferenceId.set(roomCode);
+                this.conferenceCode.set(roomCode);
             }
         });
     }
 
     ngOnDestroy(): void {
-        this.conferenceWebSocket.leave(this.conferenceId());
+        this.conferenceWebSocket.leave();
         this.routeSubscription.unsubscribe();
     }
 
     protected joinConference(): void {
-        this.conferenceWebSocket.connect(this.conferenceId());
+        this.conferenceWebSocket.connect(this.conferenceCode());
 
         this.isConnected.set(true);
     }

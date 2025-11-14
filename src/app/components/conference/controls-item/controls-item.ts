@@ -1,4 +1,5 @@
 import { Component, inject, input, InputSignal } from "@angular/core";
+import { Router } from "@angular/router";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
 
@@ -13,6 +14,8 @@ export class ControlsItem {
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
 
+    private router: Router = inject(Router);
+
     protected toggleAudio(): void {
         this.conferenceWebSocket.toggleAudio();
     }
@@ -23,5 +26,10 @@ export class ControlsItem {
 
     protected toggleScreenShare(): void {
         this.conferenceWebSocket.toggleScreenShare();
+    }
+
+    protected leaveConference(): void {
+        this.conferenceWebSocket.leave();
+        this.router.navigate(["/"]);
     }
 }
