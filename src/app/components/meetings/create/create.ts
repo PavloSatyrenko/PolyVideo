@@ -114,7 +114,7 @@ export class Create {
                 this.meetingName(),
                 this.isPlanned(),
             ).then((meeting: MeetingType) => {
-                this.router.navigate(["/conference", meeting.id]);
+                this.router.navigate(["/conference", meeting.code]);
             }).catch((error: any) => {
                 console.error("Error creating meeting:", error);
             });

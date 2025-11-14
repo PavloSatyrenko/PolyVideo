@@ -23,7 +23,7 @@ export class MeetingsService {
         return await firstValueFrom(this.httpClient.post<MeetingType>(environment.serverURL + "/meetings", payload));
     }
 
-    public async getMeetingById(meetingId: string): Promise<MeetingType> {
-        return await firstValueFrom(this.httpClient.get<MeetingType>(environment.serverURL + `/meetings/${meetingId}`));
+    public async getMeetingByCode(meetingCode: string): Promise<MeetingType> {
+        return await firstValueFrom(this.httpClient.get<MeetingType>(environment.serverURL + `/meetings/${meetingCode}`));
     }
 }

@@ -69,12 +69,13 @@ export class ConferenceWebsocket {
 
     private meetingsService: MeetingsService = inject(MeetingsService);
 
-    public async setMeetingById(meetingId: string): Promise<void> {
-        await this.meetingsService.getMeetingById(meetingId).then((meeting: MeetingType) => {
-            this.internalMeeting.set(meeting);
-        }).catch(() => {
-            this.internalMeeting.set(null);
-        });
+    public async setMeetingByCode(meetingCode: string): Promise<void> {
+        await this.meetingsService.getMeetingByCode(meetingCode)
+            .then((meeting: MeetingType) => {
+                this.internalMeeting.set(meeting);
+            }).catch(() => {
+                this.internalMeeting.set(null);
+            });
     }
 
     public connect(roomId: string): void {

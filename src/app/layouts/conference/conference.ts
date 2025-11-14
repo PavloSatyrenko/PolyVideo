@@ -24,22 +24,22 @@ export class Conference implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.routeSubscription = this.activatedRoute.params.subscribe(async (params: Params) => {
-            const roomId: string | undefined = params["id"];
+            const roomCode: string | undefined = params["code"];
 
-            if (!roomId) {
+            if (!roomCode) {
                 this.router.navigate(["/"]);
                 return;
             }
 
-            await this.conferenceWebSocket.setMeetingById(roomId);
+            await this.conferenceWebSocket.setMeetingByCode(roomCode);
 
             if (!this.isConferenceExists()) {
                 this.router.navigate(["/"]);
                 return;
             }
 
-            if (roomId) {
-                this.conferenceId.set(roomId);
+            if (roomCode) {
+                this.conferenceId.set(roomCode);
             }
         });
     }
