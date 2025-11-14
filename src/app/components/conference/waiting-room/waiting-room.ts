@@ -1,9 +1,11 @@
-import { Component, computed, inject, output, OutputEmitterRef, Signal } from "@angular/core";
+import { Component, computed, inject, output, OutputEmitterRef, signal, Signal, WritableSignal } from "@angular/core";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { ControlsItem } from "@components/conference/controls-item/controls-item";
 import { Title } from "@shared/components/title/title";
 import { Button } from "@shared/components/button/button";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
+import { AuthService } from "@shared/services/auth.service";
+import { UserType } from "@shared/types/UserType";
 
 @Component({
     selector: "app-conference-waiting-room",
@@ -26,15 +28,28 @@ export class WaitingRoom {
         isEnabled: this.conferenceWebSocket.isVideoEnabled()
     }));
 
+    protected name: WritableSignal<string> = signal<string>("");
+
     public onJoinConference: OutputEmitterRef<void> = output<void>();
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    private authService: AuthService = inject(AuthService);
 
     async ngOnInit(): Promise<void> {
+        const user: UserType | null = this.authService.user();
+
+        if (user) {
+            this.name.set(`${user.name} ${user.surname}`);
+        }
+        else {
+            this.name.set("Guest");
+        }
+
         await this.conferenceWebSocket.getUserMedia();
     }
 
     protected joinConference(): void {
+        this.conferenceWebSocket.localName.set(this.name());
         this.onJoinConference.emit();
     }
 }

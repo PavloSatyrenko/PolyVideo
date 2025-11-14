@@ -4,7 +4,7 @@ import { ControlsItem } from "@components/conference/controls-item/controls-item
 import { ParticipantType } from "@shared/types/ParticipantType";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
-import { StreamsType } from "@shared/types/StreamsType";
+import { RemotePeerType } from "@shared/types/RemotePeerType";
 
 @Component({
     selector: "app-conference-room",
@@ -72,23 +72,23 @@ export class Room {
         });
 
         effect(() => {
-            const remoteStreams: Record<string, StreamsType> = this.conferenceWebSocket.remoteStreams();
+            const remotePeers: Record<string, RemotePeerType> = this.conferenceWebSocket.remotePeers();
 
             const participants: ParticipantType[] = untracked(this.participants);
 
             const screenStreams: ParticipantType[] = [];
 
-            const updatedParticipants: ParticipantType[] = Object.entries(remoteStreams).map(([socketId, streams]: [string, StreamsType]) => {
+            const updatedParticipants: ParticipantType[] = Object.entries(remotePeers).map(([socketId, peer]: [string, RemotePeerType]) => {
                 const participant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.id === socketId);
 
-                if (streams.isScreenSharing) {
+                if (peer.isScreenSharing) {
                     screenStreams.push({
-                        id: socketId + "-screen",
-                        name: `User ${socketId.substring(0, 5)} Screen`,
+                        id: `${socketId}-screen`,
+                        name: `${peer.name} screen`,
                         isAudioEnabled: false,
                         isVideoEnabled: true,
                         audioStream: new MediaStream(),
-                        videoStream: streams.screenShareStream,
+                        videoStream: peer.screenShareStream,
                         isMoved: false,
                         isLocal: false,
                         isScreen: true
@@ -98,7 +98,7 @@ export class Room {
                 if (participant) {
                     const currentVideoStreamTracks: MediaStreamTrack[] = participant.videoStream.getVideoTracks();
 
-                    const newVideoStreamTracks: MediaStreamTrack[] = remoteStreams[socketId].videoStream.getVideoTracks();
+                    const newVideoStreamTracks: MediaStreamTrack[] = remotePeers[socketId].videoStream.getVideoTracks();
 
                     for (const track of newVideoStreamTracks) {
                         if (!currentVideoStreamTracks.includes(track)) {
@@ -114,18 +114,18 @@ export class Room {
 
                     return {
                         ...participant,
-                        isAudioEnabled: remoteStreams[participant.id].isAudioEnabled,
-                        isVideoEnabled: remoteStreams[participant.id].isVideoEnabled,
+                        isAudioEnabled: remotePeers[participant.id].isAudioEnabled,
+                        isVideoEnabled: remotePeers[participant.id].isVideoEnabled,
                     };
                 }
                 else {
                     return {
                         id: socketId,
-                        name: `User ${socketId.substring(0, 5)}`,
-                        isAudioEnabled: streams.isAudioEnabled,
-                        isVideoEnabled: streams.isVideoEnabled,
-                        audioStream: streams.audioStream,
-                        videoStream: streams.videoStream,
+                        name: peer.name,
+                        isAudioEnabled: peer.isAudioEnabled,
+                        isVideoEnabled: peer.isVideoEnabled,
+                        audioStream: peer.audioStream,
+                        videoStream: peer.videoStream,
                         isMoved: false,
                         isLocal: false,
                         isScreen: false
@@ -137,7 +137,7 @@ export class Room {
 
             updatedParticipants.push({
                 id: "local",
-                name: "You",
+                name: this.conferenceWebSocket.localName(),
                 isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
                 isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
                 audioStream: new MediaStream(),
@@ -150,7 +150,7 @@ export class Room {
             if (this.conferenceWebSocket.isScreenSharing()) {
                 updatedParticipants.push({
                     id: "local-screen",
-                    name: "Your Screen",
+                    name: this.conferenceWebSocket.localName() + " screen",
                     isAudioEnabled: false,
                     isVideoEnabled: true,
                     audioStream: new MediaStream(),

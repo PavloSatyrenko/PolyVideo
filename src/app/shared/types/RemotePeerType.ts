@@ -1,4 +1,5 @@
-export type StreamsType = {
+export type RemotePeerType = {
+    name: string,
     videoStream: MediaStream,
     audioStream: MediaStream,
     screenShareStream: MediaStream,

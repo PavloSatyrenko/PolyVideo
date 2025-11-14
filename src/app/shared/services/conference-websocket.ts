@@ -1,16 +1,9 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from "@angular/core";
 import { io, Socket } from "socket.io-client";
 import { environment } from "@shared/environments/environment";
-import { StreamsType } from "@shared/types/StreamsType";
+import { RemotePeerType } from "@shared/types/RemotePeerType";
 import { MeetingsService } from "./meetings.service";
 import { MeetingType } from "@shared/types/MeetingType";
-
-type MetaDataType = {
-    version: number;
-    isVideoEnabled: boolean;
-    isAudioEnabled: boolean;
-    isScreenSharing: boolean;
-};
 
 @Injectable({
     providedIn: "root"
@@ -18,6 +11,8 @@ type MetaDataType = {
 export class ConferenceWebsocket {
     private socket!: Socket;
     private peerConnections: Record<string, RTCPeerConnection> = {};
+
+    public localName: WritableSignal<string> = signal<string>("");
 
     private internalLocalVideoTrigger: WritableSignal<number> = signal(0);
     private internalLocalVideoStream: WritableSignal<MediaStream> = signal(new MediaStream());
@@ -56,11 +51,13 @@ export class ConferenceWebsocket {
     private internalDevices: WritableSignal<MediaDeviceInfo[]> = signal<MediaDeviceInfo[]>([]);
     public devices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => this.internalDevices());
 
-    private internalRemoteStreams: WritableSignal<Record<string, StreamsType>> = signal<Record<string, StreamsType>>({});
-    public remoteStreams: Signal<Record<string, StreamsType>> = computed<Record<string, StreamsType>>(() => this.internalRemoteStreams());
+    private internalRemotePeers: WritableSignal<Record<string, RemotePeerType>> = signal<Record<string, RemotePeerType>>({});
+    public remotePeers: Signal<Record<string, RemotePeerType>> = computed<Record<string, RemotePeerType>>(() => this.internalRemotePeers());
 
     private peerConnectionStatus: Record<string, boolean> = {};
     private peerConnectionNegotiation: Record<string, boolean> = {};
+
+    private conferenceCode: string = "";
 
     private internalMeeting: WritableSignal<MeetingType | null> = signal<MeetingType | null>(null);
     public meeting: Signal<MeetingType | null> = computed<MeetingType | null>(() => this.internalMeeting());
@@ -78,26 +75,55 @@ export class ConferenceWebsocket {
             });
     }
 
-    public connect(roomId: string): void {
+    public connect(roomCode: string): void {
         this.socket = io(environment.serverURL + "/meeting");
 
-this.conferenceCode = roomCode;
+        this.conferenceCode = roomCode;
 
-        this.socket.emit("join", roomId);
+        this.socket.emit("join", { roomCode: roomCode, name: this.localName() });
 
-        this.socket.on("new-user", async (socketId: string) => {
-            this.peerConnections[socketId] = this.createPeerConnection(socketId);
+        this.socket.on("all-users", (users: { socketId: string, name: string }[]) => {
+            this.internalRemotePeers.update((currentStreams: Record<string, RemotePeerType>) => {
+                const updatedStreams: Record<string, RemotePeerType> = { ...currentStreams };
 
-            this.peerConnectionNegotiation[socketId] = true;
+                users.forEach((user: { socketId: string, name: string }) => {
+                    updatedStreams[user.socketId] = {
+                        ...currentStreams[user.socketId],
+                        name: user.name,
+                        videoStream: currentStreams[user.socketId]?.videoStream || new MediaStream(),
+                        audioStream: currentStreams[user.socketId]?.audioStream || new MediaStream(),
+                        screenShareStream: currentStreams[user.socketId]?.screenShareStream || new MediaStream()
+                    };
+                });
+
+                return updatedStreams;
+            });
+        });
+
+        this.socket.on("new-user", async (data: { socketId: string, name: string }) => {
+            this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
+
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
+                ...streams,
+                [data.socketId]: {
+                    ...streams[data.socketId],
+                    name: data.name,
+                    videoStream: streams[data.socketId]?.videoStream || new MediaStream(),
+                    audioStream: streams[data.socketId]?.audioStream || new MediaStream(),
+                    screenShareStream: streams[data.socketId]?.screenShareStream || new MediaStream()
+                }
+            }));
+
+            this.peerConnectionNegotiation[data.socketId] = true;
 
             try {
-                const offer: RTCSessionDescriptionInit = await this.peerConnections[socketId].createOffer();
-                await this.peerConnections[socketId].setLocalDescription(offer);
-                this.socket.emit("offer", { socketId: socketId, offer: offer });
+                const offer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createOffer();
+                await this.peerConnections[data.socketId].setLocalDescription(offer);
+                this.socket.emit("offer", { socketId: data.socketId, offer: offer });
             }
             catch (error) {
                 console.error("Error during offer handling", error);
-                this.peerConnectionNegotiation[socketId] = false;
+                this.peerConnectionNegotiation[data.socketId] = false;
             }
         });
 
@@ -149,7 +175,7 @@ this.conferenceCode = roomCode;
         });
 
         this.socket.on("mute", (socketId: string) => {
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
                 [socketId]: {
                     ...streams[socketId],
@@ -159,7 +185,7 @@ this.conferenceCode = roomCode;
         });
 
         this.socket.on("unmute", (socketId: string) => {
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
                 [socketId]: {
                     ...streams[socketId],
@@ -169,7 +195,7 @@ this.conferenceCode = roomCode;
         });
 
         this.socket.on("disable-video", (socketId: string) => {
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
                 [socketId]: {
                     ...streams[socketId],
@@ -179,7 +205,7 @@ this.conferenceCode = roomCode;
         });
 
         this.socket.on("enable-video", (socketId: string) => {
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
                 [socketId]: {
                     ...streams[socketId],
@@ -189,7 +215,7 @@ this.conferenceCode = roomCode;
         });
 
         this.socket.on("start-screen-share", (socketId: string) => {
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
                 [socketId]: {
                     ...streams[socketId],
@@ -199,7 +225,7 @@ this.conferenceCode = roomCode;
         });
 
         this.socket.on("stop-screen-share", (socketId: string) => {
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
                 [socketId]: {
                     ...streams[socketId],
@@ -326,7 +352,7 @@ this.conferenceCode = roomCode;
             this.closePeer(socketId);
         }
 
-        this.internalRemoteStreams.set({});
+        this.internalRemotePeers.set({});
 
         this.socket?.emit("leave", this.conferenceCode);
         this.socket?.disconnect();
@@ -350,15 +376,13 @@ this.conferenceCode = roomCode;
         });
 
         peerConnection.ontrack = (event: RTCTrackEvent) => {
-            console.log(event, event.track.getSettings())
-            const currentRemoteStreams: Record<string, StreamsType> = this.internalRemoteStreams();
+            const currentRemoteStreams: Record<string, RemotePeerType> = this.internalRemotePeers();
 
-            const updatedEntry: StreamsType = {
-                ...(currentRemoteStreams[socketId] ?? {
-                    videoStream: new MediaStream(),
-                    audioStream: new MediaStream(),
-                    screenShareStream: new MediaStream()
-                })
+            const updatedEntry: RemotePeerType = {
+                ...currentRemoteStreams[socketId],
+                videoStream: currentRemoteStreams[socketId]?.videoStream || new MediaStream(),
+                audioStream: currentRemoteStreams[socketId]?.audioStream || new MediaStream(),
+                screenShareStream: currentRemoteStreams[socketId]?.screenShareStream || new MediaStream(),
             };
 
             if (event.track.kind === "audio") {
@@ -378,7 +402,7 @@ this.conferenceCode = roomCode;
             updatedEntry.isVideoEnabled = updatedEntry.videoStream.getVideoTracks().some((track: MediaStreamTrack) => track.enabled);
             updatedEntry.isScreenSharing = updatedEntry.screenShareStream.getTracks().length > 0;
 
-            this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => ({ ...streams, [socketId]: updatedEntry }));
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({ ...streams, [socketId]: updatedEntry }));
         }
 
         peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
@@ -429,7 +453,7 @@ this.conferenceCode = roomCode;
     }
 
     private closePeer(socketId: string): void {
-        const streamEntry: StreamsType = this.internalRemoteStreams()[socketId];
+        const streamEntry: RemotePeerType = this.internalRemotePeers()[socketId];
 
         if (streamEntry) {
             streamEntry.audioStream.getTracks().forEach((track: MediaStreamTrack) => {
@@ -445,8 +469,8 @@ this.conferenceCode = roomCode;
             });
         }
 
-        this.internalRemoteStreams.update((streams: Record<string, StreamsType>) => {
-            const updated: Record<string, StreamsType> = { ...streams };
+        this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => {
+            const updated: Record<string, RemotePeerType> = { ...streams };
             delete updated[socketId];
             return updated;
         });
