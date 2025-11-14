@@ -45,6 +45,10 @@ export class Meetings implements OnInit {
     }
 
     joinMeeting(): void {
+        if (this.meetingCodeValue.trim().length === 0) {
+            return;
+        }
+
         this.router.navigate(["/conference", this.meetingCodeValue])
     }
 }

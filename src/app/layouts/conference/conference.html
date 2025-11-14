@@ -1,9 +1,9 @@
 <main class="conference">
-    @if (!isConnected()) {
+    @if (isConferenceExists()) { @if (!isConnected()) {
     <app-conference-waiting-room
         (onJoinConference)="joinConference()"
     ></app-conference-waiting-room>
     } @else {
     <app-conference-room></app-conference-room>
-    }
+    } }
 </main>

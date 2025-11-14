@@ -1,7 +1,9 @@
-import { computed, Injectable, Signal, signal, WritableSignal } from "@angular/core";
+import { computed, inject, Injectable, Signal, signal, WritableSignal } from "@angular/core";
 import { io, Socket } from "socket.io-client";
 import { environment } from "@shared/environments/environment";
 import { StreamsType } from "@shared/types/StreamsType";
+import { MeetingsService } from "./meetings.service";
+import { MeetingType } from "@shared/types/MeetingType";
 
 type MetaDataType = {
     version: number;
@@ -59,6 +61,21 @@ export class ConferenceWebsocket {
 
     private peerConnectionStatus: Record<string, boolean> = {};
     private peerConnectionNegotiation: Record<string, boolean> = {};
+
+    private internalMeeting: WritableSignal<MeetingType | null> = signal<MeetingType | null>(null);
+    public meeting: Signal<MeetingType | null> = computed<MeetingType | null>(() => this.internalMeeting());
+
+    public isConferenceExists: Signal<boolean> = computed<boolean>(() => this.internalMeeting() !== null);
+
+    private meetingsService: MeetingsService = inject(MeetingsService);
+
+    public async setMeetingById(meetingId: string): Promise<void> {
+        await this.meetingsService.getMeetingById(meetingId).then((meeting: MeetingType) => {
+            this.internalMeeting.set(meeting);
+        }).catch(() => {
+            this.internalMeeting.set(null);
+        });
+    }
 
     public connect(roomId: string): void {
         this.socket = io(environment.serverURL + "/meeting");

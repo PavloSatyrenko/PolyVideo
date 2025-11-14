@@ -1,5 +1,5 @@
-import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from "@angular/core";
-import { ActivatedRoute, Params } from "@angular/router";
+import { Component, computed, inject, OnDestroy, OnInit, Signal, signal, WritableSignal } from "@angular/core";
+import { ActivatedRoute, Params, Router } from "@angular/router";
 import { Room } from "@components/conference/room/room";
 import { WaitingRoom } from "@components/conference/waiting-room/waiting-room";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
@@ -12,14 +12,31 @@ import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 })
 export class Conference implements OnInit, OnDestroy {
     protected conferenceId: WritableSignal<string> = signal<string>("");
+
+    protected isConferenceExists: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isConferenceExists());
     protected isConnected: WritableSignal<boolean> = signal<boolean>(false);
+
+    private routeSubscription: any;
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+    private router: Router = inject(Router);
 
     ngOnInit(): void {
-        this.activatedRoute.params.subscribe(async (params: Params) => {
+        this.routeSubscription = this.activatedRoute.params.subscribe(async (params: Params) => {
             const roomId: string | undefined = params["id"];
+
+            if (!roomId) {
+                this.router.navigate(["/"]);
+                return;
+            }
+
+            await this.conferenceWebSocket.setMeetingById(roomId);
+
+            if (!this.isConferenceExists()) {
+                this.router.navigate(["/"]);
+                return;
+            }
 
             if (roomId) {
                 this.conferenceId.set(roomId);
@@ -29,6 +46,7 @@ export class Conference implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.conferenceWebSocket.leave(this.conferenceId());
+        this.routeSubscription.unsubscribe();
     }
 
     protected joinConference(): void {
