@@ -3,6 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "@shared/environments/environment";
 import { MeetingType } from '@shared/types/MeetingType';
+import { RecentMeetingType } from '@shared/types/RecentMeetingType';
 
 @Injectable({
     providedIn: "root",
@@ -25,5 +26,13 @@ export class MeetingsService {
 
     public async getMeetingByCode(meetingCode: string): Promise<MeetingType> {
         return await firstValueFrom(this.httpClient.get<MeetingType>(environment.serverURL + `/meetings/${meetingCode}`));
+    }
+
+    public async getRecentMeetings(): Promise<RecentMeetingType[]> {
+        return await firstValueFrom(this.httpClient.get<RecentMeetingType[]>(environment.serverURL + `/meetings/recent`));
+    }
+
+    public async addMeetingToRecent(meetingCode: string): Promise<void> {
+        await firstValueFrom(this.httpClient.post<void>(environment.serverURL + `/meetings/recent/${meetingCode}`, {}));
     }
 }

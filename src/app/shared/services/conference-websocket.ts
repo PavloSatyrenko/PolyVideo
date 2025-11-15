@@ -82,6 +82,8 @@ export class ConferenceWebsocket {
 
         this.socket.emit("join", { roomCode: roomCode, name: this.localName() });
 
+        this.meetingsService.addMeetingToRecent(roomCode);
+
         this.socket.on("all-users", (users: { socketId: string, name: string }[]) => {
             this.internalRemotePeers.update((currentStreams: Record<string, RemotePeerType>) => {
                 const updatedStreams: Record<string, RemotePeerType> = { ...currentStreams };

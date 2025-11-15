@@ -1,8 +1,16 @@
 <div class="meeting">
     <div class="meeting__information">
         <ui-title [title]="name()" [size]="'small'"></ui-title>
-        <span class="meeting__last-time-joined">Joined {{ computedLastTimeJoined() }} ago</span>
+        <span class="meeting__last-time-joined"
+            >Joined {{ computedLastTimeJoined() }} ago</span
+        >
     </div>
 
-    <ui-button [label]="'Join'" [size]="'small'" [type]="'primary'" [isFullWidth]="true"></ui-button>
+    <ui-button
+        [label]="'Join'"
+        [size]="'small'"
+        [type]="'primary'"
+        [isFullWidth]="true"
+        (click)="joinMeeting()"
+    ></ui-button>
 </div>

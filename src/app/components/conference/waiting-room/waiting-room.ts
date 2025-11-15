@@ -6,6 +6,7 @@ import { Button } from "@shared/components/button/button";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
 import { AuthService } from "@shared/services/auth.service";
 import { UserType } from "@shared/types/UserType";
+import { Router } from "@angular/router";
 
 @Component({
     selector: "app-conference-waiting-room",
@@ -34,6 +35,7 @@ export class WaitingRoom {
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
+    private router: Router = inject(Router);
 
     async ngOnInit(): Promise<void> {
         const user: UserType | null = this.authService.user();
@@ -46,6 +48,11 @@ export class WaitingRoom {
         }
 
         await this.conferenceWebSocket.getUserMedia();
+    }
+
+    protected cancelJoining(): void {
+        // this.conferenceWebSocket.closeConnection();
+        this.router.navigate(["/workspace", "meetings"]);
     }
 
     protected joinConference(): void {

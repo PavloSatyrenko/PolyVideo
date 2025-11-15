@@ -28,16 +28,14 @@
     </div>
 
     <div class="meetings__recent">
-        <ui-title
-            [title]="'Recent Meetings'"
-            [size]="'medium'"
-        ></ui-title>
+        <ui-title [title]="'Recent Meetings'" [size]="'medium'"></ui-title>
 
         <div class="meetings__list">
             @for(meeting of recentMeetings(); track meeting.id) {
             <app-meetings-item
                 class="list__item"
                 [name]="meeting.name"
+                [code]="meeting.code"
                 [lastTimeJoined]="meeting.lastTimeJoined"
             ></app-meetings-item>
             }

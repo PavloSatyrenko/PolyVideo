@@ -5,6 +5,7 @@ import { Input } from "@shared/components/input/input";
 import { RecentMeetingType } from "@shared/types/RecentMeetingType";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Item } from "@components/meetings/item/item";
+import { MeetingsService } from "@shared/services/meetings.service";
 
 @Component({
     selector: "app-page-meetings",
@@ -19,25 +20,17 @@ export class Meetings implements OnInit {
 
     private router: Router = inject(Router);
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+    private meetingsService: MeetingsService = inject(MeetingsService);
 
     ngOnInit(): void {
-        this.recentMeetings.set([
-            {
-                id: "1",
-                name: "Meeting 1",
-                lastTimeJoined: new Date(new Date().setDate(new Date().getDate() - 7))
-            },
-            {
-                id: "2",
-                name: "Meeting 2",
-                lastTimeJoined: new Date(new Date().setHours(new Date().getHours() - 14))
-            },
-            {
-                id: "3",
-                name: "Meeting 3",
-                lastTimeJoined: new Date(new Date().setMinutes(new Date().getMinutes() - 39))
-            }
-        ]);
+        this.loadRecentMeetings();
+    }
+
+    protected async loadRecentMeetings(): Promise<void> {
+        this.meetingsService.getRecentMeetings()
+            .then((meetings: RecentMeetingType[]) => {
+                this.recentMeetings.set(meetings);
+            });
     }
 
     createMeeting(): void {
