@@ -1,0 +1,32 @@
+<div class="sidebar">
+    <ui-title [title]="'Participants'" [size]="'medium'"></ui-title>
+
+    <div class="sidebar__list">
+        @for(participant of visibleParticipants(); track participant.id) {
+        <div class="sidebar__item">
+            <div class="item__info">
+                <span class="item__image-wrapper"></span>
+                <span class="item__name">{{ participant.name }}</span>
+            </div>
+
+            <div class="item__actions">
+                <span class="item__icon">
+                    @if (participant.isAudioEnabled) {
+                    <i class="control__icon fa-solid fa-microphone"></i>
+                    } @else {
+                    <i class="control__icon fa-solid fa-microphone-slash"></i>
+                    }
+                </span>
+
+                <span class="item__icon">
+                    @if (participant.isVideoEnabled) {
+                    <i class="control__icon fa-solid fa-video"></i>
+                    } @else {
+                    <i class="control__icon fa-solid fa-video-slash"></i>
+                    }
+                </span>
+            </div>
+        </div>
+        }
+    </div>
+</div>

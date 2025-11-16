@@ -7,15 +7,24 @@
             ></app-conference-participant>
             }
         </div>
+
+        @if (isSidebarOpened()) {
+        <aside class="conference__sidebar">
+            @if (isParticipantsSidebarOpened()) {
+            <app-conference-participants-sidebar [participants]="participants()"></app-conference-participants-sidebar>
+            } @if (isChatSidebarOpened()) {
+            <app-conference-chat-sidebar></app-conference-chat-sidebar>
+            }
+        </aside>
+        }
     </div>
 
     <div class="conference__controls">
         @for(item of controlsItems(); track item.type) {
         <app-conference-controls-item
             [item]="item"
+            (click)="handleControlItemClick($event)"
         ></app-conference-controls-item>
         }
     </div>
 </section>
-
-<aside class="conference__sidebar"></aside>

@@ -1,19 +1,25 @@
 import { Component, computed, effect, ElementRef, inject, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
 import { Participant } from "@components/conference/participant/participant";
 import { ControlsItem } from "@components/conference/controls-item/controls-item";
+import { ParticipantsSidebar } from "@components/conference/participants-sidebar/participants-sidebar";
+import { ChatSidebar } from "@components/conference/chat-sidebar/chat-sidebar";
 import { ParticipantType } from "@shared/types/ParticipantType";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { RemotePeerType } from "@shared/types/RemotePeerType";
+import { Router } from "@angular/router";
 
 @Component({
     selector: "app-conference-room",
-    imports: [Participant, ControlsItem],
+    imports: [Participant, ControlsItem, ParticipantsSidebar, ChatSidebar],
     templateUrl: "./room.html",
     styleUrl: "./room.css"
 })
 export class Room {
-    protected isSidebarExpanded: WritableSignal<boolean> = signal<boolean>(false);
+    protected isParticipantsSidebarOpened: WritableSignal<boolean> = signal<boolean>(false);
+    protected isChatSidebarOpened: WritableSignal<boolean> = signal<boolean>(false);
+
+    protected isSidebarOpened: Signal<boolean> = computed<boolean>(() => this.isParticipantsSidebarOpened() || this.isChatSidebarOpened());
 
     protected participants: WritableSignal<ParticipantType[]> = signal([]);
 
@@ -50,6 +56,7 @@ export class Room {
     ]);
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    private router: Router = inject(Router);
 
     constructor() {
         effect(() => {
@@ -165,7 +172,7 @@ export class Room {
         });
     }
 
-    getOptimalParticipantsLayout(wrapperElement: HTMLElement, participantsAmount: number): { rows: number, columns: number } {
+    private getOptimalParticipantsLayout(wrapperElement: HTMLElement, participantsAmount: number): { rows: number, columns: number } {
         const optimalLayout: { rows: number, columns: number } = { rows: 1, columns: participantsAmount };
         const aspectRatio: number = wrapperElement.clientWidth / wrapperElement.clientHeight;
         let minWastedSpace: number = Infinity;
@@ -187,5 +194,31 @@ export class Room {
         }
 
         return optimalLayout;
+    }
+
+    protected handleControlItemClick(type: string): void {
+        switch (type) {
+            case "audio":
+                this.conferenceWebSocket.toggleAudio();
+                break;
+            case "video":
+                this.conferenceWebSocket.toggleVideo();
+                break;
+            case "screen":
+                this.conferenceWebSocket.toggleScreenShare();
+                break;
+            case "participants":
+                this.isParticipantsSidebarOpened.set(!this.isParticipantsSidebarOpened());
+                this.isChatSidebarOpened.set(false);
+                break;
+            case "chat":
+                this.isChatSidebarOpened.set(!this.isChatSidebarOpened());
+                this.isParticipantsSidebarOpened.set(false);
+                break;
+            case "leave":
+                this.conferenceWebSocket.leave();
+                this.router.navigate(["/"]);
+                break;
+        }
     }
 }

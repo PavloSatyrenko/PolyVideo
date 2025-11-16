@@ -1,45 +1,25 @@
-@if (item().type == "audio") {
-<button class="control__button" (click)="toggleAudio()">
-    @if (item().isEnabled) {
+<button class="control__button" (click)="itemClick($event)">
+    @if (item().type == "audio") { @if (item().isEnabled) {
     <i class="control__icon fa-solid fa-microphone"></i>
     } @else {
     <i class="control__icon fa-solid fa-microphone-slash"></i>
-    }
-</button>
-} @else if (item().type == "video") {
-<button class="control__button" (click)="toggleVideo()">
-    @if (item().isEnabled) {
+    } } @else if (item().type == "video") { @if (item().isEnabled) {
     <i class="control__icon fa-solid fa-video"></i>
     } @else {
     <i class="control__icon fa-solid fa-video-slash"></i>
-    }
-</button>
-} @else if (item().type == "screen") {
-<button class="control__button" (click)="toggleScreenShare()">
-    @if (item().isEnabled) {
+    } } @else if (item().type == "screen") { @if (item().isEnabled) {
     <i class="control__icon fa-solid fa-ban"></i>
     } @else {
     <i class="control__icon fa-solid fa-desktop"></i>
+    } } @else if (item().type == "participants") {
+    <i class="control__icon fa-solid fa-users"></i>
+    } @else if (item().type == "chat") {
+    <i class="control__icon fa-solid fa-comment"></i>
+    } @else if (item().type == "hand") {
+    <i class="control__icon fa-solid fa-hand-paper"></i>
+    } @else if (item().type == "other") {
+    <i class="control__icon fa-solid fa-ellipsis-h"></i>
+    } @else if (item().type == "leave") {
+    <i class="control__icon fa-solid fa-sign-out-alt"></i>
     }
 </button>
-} @else if (item().type == "participants") {
-<button class="control__button">
-    <i class="control__icon fa-solid fa-users"></i>
-</button>
-} @else if (item().type == "chat") {
-<button class="control__button">
-    <i class="control__icon fa-solid fa-comment"></i>
-</button>
-} @else if (item().type == "hand") {
-<button class="control__button">
-    <i class="control__icon fa-solid fa-hand-paper"></i>
-</button>
-} @else if (item().type == "other") {
-<button class="control__button">
-    <i class="control__icon fa-solid fa-ellipsis-h"></i>
-</button>
-} @else if (item().type == "leave") {
-<button class="control__button" (click)="leaveConference()">
-    <i class="control__icon fa-solid fa-sign-out-alt"></i>
-</button>
-}
