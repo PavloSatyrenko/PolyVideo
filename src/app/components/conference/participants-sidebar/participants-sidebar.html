@@ -5,7 +5,7 @@
         @for(participant of visibleParticipants(); track participant.id) {
         <div class="sidebar__item">
             <div class="item__info">
-                <span class="item__image-wrapper"></span>
+                <span [ngClass]="{'item__image-wrapper_bordered': participant.isHandUp}" class="item__image-wrapper"></span>
                 <span class="item__name">{{ participant.name }}</span>
             </div>
 

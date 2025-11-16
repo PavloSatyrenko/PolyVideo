@@ -15,4 +15,10 @@
     }
 
     <span class="participant__name">{{ participant().name }}</span>
+
+    @if (participant().isHandUp) {
+        <span class="participant__hand">
+            <i class="fa-solid fa-hand"></i>
+        </span>
+    }
 </div>

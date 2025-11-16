@@ -48,6 +48,7 @@ export class Room {
         },
         {
             type: "hand",
+            isEnabled: this.conferenceWebSocket.isHandUp()
         },
         {
             type: "other",
@@ -100,6 +101,7 @@ export class Room {
                         videoStream: peer.screenShareStream,
                         isMoved: false,
                         isLocal: false,
+                        isHandUp: false,
                         isScreen: true
                     });
                 }
@@ -125,6 +127,7 @@ export class Room {
                         ...participant,
                         isAudioEnabled: remotePeers[participant.id].isAudioEnabled,
                         isVideoEnabled: remotePeers[participant.id].isVideoEnabled,
+                        isHandUp: remotePeers[participant.id].isHandUp
                     };
                 }
                 else {
@@ -137,6 +140,7 @@ export class Room {
                         videoStream: peer.videoStream,
                         isMoved: false,
                         isLocal: false,
+                        isHandUp: peer.isHandUp,
                         isScreen: false
                     };
                 }
@@ -153,6 +157,7 @@ export class Room {
                 videoStream: this.conferenceWebSocket.localVideoStream(),
                 isMoved: false,
                 isLocal: true,
+                isHandUp: this.conferenceWebSocket.isHandUp(),
                 isScreen: false
             });
 
@@ -166,6 +171,7 @@ export class Room {
                     videoStream: this.conferenceWebSocket.localScreenShareStream(),
                     isMoved: false,
                     isLocal: true,
+                    isHandUp: false,
                     isScreen: true
                 });
             }
@@ -216,6 +222,9 @@ export class Room {
             case "chat":
                 this.isChatSidebarOpened.set(!this.isChatSidebarOpened());
                 this.isParticipantsSidebarOpened.set(false);
+                break;
+            case "hand":
+                this.conferenceWebSocket.toggleHand();
                 break;
             case "leave":
                 this.conferenceWebSocket.leave();

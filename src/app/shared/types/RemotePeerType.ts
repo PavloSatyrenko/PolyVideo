@@ -6,4 +6,5 @@ export type RemotePeerType = {
     isVideoEnabled: boolean,
     isAudioEnabled: boolean,
     isScreenSharing: boolean,
+    isHandUp: boolean
 }

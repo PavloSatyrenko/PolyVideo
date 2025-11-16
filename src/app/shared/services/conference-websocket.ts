@@ -48,6 +48,8 @@ export class ConferenceWebsocket {
         return this.internalLocalScreenShareStream().getTracks().length > 0;
     });
 
+    public isHandUp: WritableSignal<boolean> = signal<boolean>(false);
+
     private internalDevices: WritableSignal<MediaDeviceInfo[]> = signal<MediaDeviceInfo[]>([]);
     public devices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => this.internalDevices());
 
@@ -84,17 +86,18 @@ export class ConferenceWebsocket {
 
         this.meetingsService.addMeetingToRecent(roomCode);
 
-        this.socket.on("all-users", (users: { socketId: string, name: string }[]) => {
+        this.socket.on("all-users", (users: { socketId: string, name: string, isHandUp: boolean }[]) => {
             this.internalRemotePeers.update((currentStreams: Record<string, RemotePeerType>) => {
                 const updatedStreams: Record<string, RemotePeerType> = { ...currentStreams };
 
-                users.forEach((user: { socketId: string, name: string }) => {
+                users.forEach((user: { socketId: string, name: string, isHandUp: boolean }) => {
                     updatedStreams[user.socketId] = {
                         ...currentStreams[user.socketId],
                         name: user.name,
                         videoStream: currentStreams[user.socketId]?.videoStream || new MediaStream(),
                         audioStream: currentStreams[user.socketId]?.audioStream || new MediaStream(),
-                        screenShareStream: currentStreams[user.socketId]?.screenShareStream || new MediaStream()
+                        screenShareStream: currentStreams[user.socketId]?.screenShareStream || new MediaStream(),
+                        isHandUp: user.isHandUp
                     };
                 });
 
@@ -236,6 +239,26 @@ export class ConferenceWebsocket {
             }));
         });
 
+        this.socket.on("hand-up", (socketId: string) => {
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
+                ...streams,
+                [socketId]: {
+                    ...streams[socketId],
+                    isHandUp: true
+                }
+            }));
+        });
+
+        this.socket.on("hand-down", (socketId: string) => {
+            this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
+                ...streams,
+                [socketId]: {
+                    ...streams[socketId],
+                    isHandUp: false
+                }
+            }));
+        });
+
         this.socket.on("user-leave", (socketId: string) => {
             this.closePeer(socketId);
         });
@@ -298,6 +321,12 @@ export class ConferenceWebsocket {
         else {
             await this.startScreenShare();
         }
+    }
+
+    public toggleHand(): void {
+        this.isHandUp.update((value: boolean) => !value);
+
+        this.socket?.emit(this.isHandUp() ? "hand-up" : "hand-down");
     }
 
     private async startScreenShare(): Promise<void> {

@@ -27,10 +27,16 @@
 }
 
 .item__image-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     background-color: var(--element-color);
+    border: 2px solid transparent;
     border-radius: 50%;
+    transition: border-color 0.3s;
+}
+
+.item__image-wrapper_bordered {
+    border: 2px solid var(--primary-color);
 }
 
 .item__name {
