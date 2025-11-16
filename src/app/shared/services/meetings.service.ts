@@ -35,4 +35,12 @@ export class MeetingsService {
     public async addMeetingToRecent(meetingCode: string): Promise<void> {
         await firstValueFrom(this.httpClient.post<void>(environment.serverURL + `/meetings/recent/${meetingCode}`, {}));
     }
+
+    public async getOwnedMeetings(): Promise<MeetingType[]> {
+        return await firstValueFrom(this.httpClient.get<MeetingType[]>(environment.serverURL + `/meetings/owned`));
+    }
+
+    public async startMeeting(meetingCode: string): Promise<void> {
+        await firstValueFrom(this.httpClient.post<void>(environment.serverURL + `/meetings/start/${meetingCode}`, {}));
+    }
 }

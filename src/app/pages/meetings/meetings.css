@@ -16,7 +16,8 @@
     color: var(--primary-text-color);
 }
 
-.meetings__recent {
+.meetings__recent,
+.meetings__owned {
     display: flex;
     flex-direction: column;
     gap: 16px;

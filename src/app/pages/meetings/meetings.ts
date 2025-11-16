@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, WritableSignal } from "@angular/core";
+import { Component, computed, inject, OnInit, Signal, signal, WritableSignal } from "@angular/core";
 import { Title } from "@shared/components/title/title";
 import { Button } from "@shared/components/button/button";
 import { Input } from "@shared/components/input/input";
@@ -6,6 +6,7 @@ import { RecentMeetingType } from "@shared/types/RecentMeetingType";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Item } from "@components/meetings/item/item";
 import { MeetingsService } from "@shared/services/meetings.service";
+import { MeetingType } from "@shared/types/MeetingType";
 
 @Component({
     selector: "app-page-meetings",
@@ -15,8 +16,15 @@ import { MeetingsService } from "@shared/services/meetings.service";
 })
 export class Meetings implements OnInit {
     protected recentMeetings: WritableSignal<RecentMeetingType[]> = signal<RecentMeetingType[]>([]);
+    protected ownedMeetings: WritableSignal<MeetingType[]> = signal<MeetingType[]>([]);
 
-    protected meetingCodeValue: string = "";
+    protected recentVisibleMeetings: Signal<RecentMeetingType[]> = computed<RecentMeetingType[]>(() => this.recentMeetings().slice(0, 3));
+    protected ownedVisibleMeetings: Signal<MeetingType[]> = computed<MeetingType[]>(() => this.ownedMeetings().slice(0, 3));
+
+    protected isRecentMeetingsVisible: Signal<boolean> = computed<boolean>(() => this.recentMeetings().length > 0);
+    protected isOwnedMeetingsVisible: Signal<boolean> = computed<boolean>(() => this.ownedMeetings().length > 0);
+
+    protected meetingCodeValue: WritableSignal<string> = signal<string>("");
 
     private router: Router = inject(Router);
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
@@ -24,6 +32,7 @@ export class Meetings implements OnInit {
 
     ngOnInit(): void {
         this.loadRecentMeetings();
+        this.loadOwnedMeetings();
     }
 
     protected async loadRecentMeetings(): Promise<void> {
@@ -33,15 +42,22 @@ export class Meetings implements OnInit {
             });
     }
 
-    createMeeting(): void {
+    protected async loadOwnedMeetings(): Promise<void> {
+        this.meetingsService.getOwnedMeetings()
+            .then((meetings: MeetingType[]) => {
+                this.ownedMeetings.set(meetings);
+            });
+    }
+
+    protected createMeeting(): void {
         this.router.navigate(["create"], { relativeTo: this.activatedRoute });
     }
 
-    joinMeeting(): void {
-        if (this.meetingCodeValue.trim().length === 0) {
+    protected joinMeeting(): void {
+        if (this.meetingCodeValue().trim().length === 0) {
             return;
         }
 
-        this.router.navigate(["/conference", this.meetingCodeValue])
+        this.router.navigate(["/conference", this.meetingCodeValue()])
     }
 }

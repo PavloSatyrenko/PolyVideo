@@ -1,10 +1,10 @@
 export type MeetingType = {
     id: string;
-    code: string | null;
+    code: string;
     title: string;
     isPlanned: boolean;
     isStarted: boolean;
-    startTime: Date | null;
+    startTime: Date;
     endTime: Date | null;
     ownerId: string;
 }

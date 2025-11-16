@@ -14,7 +14,8 @@
     gap: 8px;
 }
 
-.meeting__last-time-joined {
+.meeting__last-time-joined,
+.meeting__schedule-date {
     font-size: 18px;
     font-weight: 400;
     color: var(--primary-text-color);

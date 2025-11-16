@@ -1,11 +1,27 @@
 <div class="meeting">
     <div class="meeting__information">
         <ui-title [title]="name()" [size]="'small'"></ui-title>
-        <span class="meeting__last-time-joined"
-            >Joined {{ computedLastTimeJoined() }} ago</span
-        >
+        @if (lastTimeJoined()) {
+        <span class="meeting__last-time-joined">
+            Joined {{ computedLastTimeJoined() }}
+        </span>
+        } @else if (scheduleDate()) { @if (isScheduledBeforeNow()) { @if
+        (isStarted()) {
+        <span class="meeting__schedule-date">
+            Started {{ computedScheduleDate() }}
+        </span>
+        } @else {
+        <span class="meeting__schedule-date">
+            Overdue {{ computedScheduleDate() }}
+        </span>
+        } } @else {
+        <span class="meeting__schedule-date">
+            Starts {{ computedScheduleDate() }}
+        </span>
+        } }
     </div>
 
+    @if (lastTimeJoined() || isStarted()) {
     <ui-button
         [label]="'Join'"
         [size]="'small'"
@@ -13,4 +29,13 @@
         [isFullWidth]="true"
         (click)="joinMeeting()"
     ></ui-button>
+    } @else {
+    <ui-button
+        [label]="'Start Now'"
+        [size]="'small'"
+        [type]="'primary'"
+        [isFullWidth]="true"
+        (click)="startMeeting()"
+    ></ui-button>
+    }
 </div>

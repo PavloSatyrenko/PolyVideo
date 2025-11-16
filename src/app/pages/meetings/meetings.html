@@ -27,11 +27,12 @@
         ></ui-button>
     </div>
 
+    @if (isRecentMeetingsVisible()) {
     <div class="meetings__recent">
         <ui-title [title]="'Recent Meetings'" [size]="'medium'"></ui-title>
 
         <div class="meetings__list">
-            @for(meeting of recentMeetings(); track meeting.id) {
+            @for(meeting of recentVisibleMeetings(); track meeting.id) {
             <app-meetings-item
                 class="list__item"
                 [name]="meeting.name"
@@ -41,4 +42,21 @@
             }
         </div>
     </div>
+    } @if (isOwnedMeetingsVisible()) {
+    <div class="meetings__owned">
+        <ui-title [title]="'Owned Meetings'" [size]="'medium'"></ui-title>
+
+        <div class="meetings__list">
+            @for(meeting of ownedVisibleMeetings(); track meeting.id) {
+            <app-meetings-item
+                class="list__item"
+                [name]="meeting.title"
+                [code]="meeting.code"
+                [scheduleDate]="meeting.startTime"
+                [isStarted]="meeting.isStarted"
+            ></app-meetings-item>
+            }
+        </div>
+    </div>
+    }
 </div>
