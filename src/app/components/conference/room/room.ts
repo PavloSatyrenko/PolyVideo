@@ -40,9 +40,11 @@ export class Room {
         },
         {
             type: "participants",
+            isEnabled: this.isParticipantsSidebarOpened()
         },
         {
             type: "chat",
+            isEnabled: this.isChatSidebarOpened()
         },
         {
             type: "hand",

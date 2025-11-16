@@ -16,10 +16,12 @@
             <div class="room__controls">
                 <app-conference-controls-item
                     [item]="audioControlItem()"
+                    (click)="toggleAudio()"
                 ></app-conference-controls-item>
 
                 <app-conference-controls-item
                     [item]="videoControlItem()"
+                    (click)="toggleVideo()"
                 ></app-conference-controls-item>
             </div>
         </div>

@@ -18,4 +18,9 @@
 .control__icon {
     font-size: 24px;
     color: var(--secondary-color);
+    transition: color 0.3s;
+}
+
+.control__icon_active {
+    color: var(--primary-color);
 }

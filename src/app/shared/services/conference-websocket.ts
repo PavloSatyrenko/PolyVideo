@@ -354,6 +354,8 @@ export class ConferenceWebsocket {
             this.closePeer(socketId);
         }
 
+        this.stopScreenShare();
+
         this.internalRemotePeers.set({});
 
         this.socket?.emit("leave", this.conferenceCode);

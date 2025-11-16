@@ -59,4 +59,12 @@ export class WaitingRoom {
         this.conferenceWebSocket.localName.set(this.name());
         this.onJoinConference.emit();
     }
+
+    protected toggleAudio(): void {
+        this.conferenceWebSocket.toggleAudio();
+    }
+
+    protected toggleVideo(): void {
+        this.conferenceWebSocket.toggleVideo();
+    }
 }

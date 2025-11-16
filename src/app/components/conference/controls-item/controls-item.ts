@@ -1,11 +1,10 @@
-import { Component, inject, input, InputSignal, output, OutputEmitterRef } from "@angular/core";
-import { Router } from "@angular/router";
-import { ConferenceWebsocket } from "@shared/services/conference-websocket";
+import { NgClass } from "@angular/common";
+import { Component, input, InputSignal, output, OutputEmitterRef } from "@angular/core";
 import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItemType";
 
 @Component({
     selector: "app-conference-controls-item",
-    imports: [],
+    imports: [NgClass],
     templateUrl: "./controls-item.html",
     styleUrl: "./controls-item.css"
 })
