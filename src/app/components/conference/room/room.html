@@ -13,7 +13,7 @@
             @if (isParticipantsSidebarOpened()) {
             <app-conference-participants-sidebar [participants]="participants()"></app-conference-participants-sidebar>
             } @if (isChatSidebarOpened()) {
-            <app-conference-chat-sidebar></app-conference-chat-sidebar>
+            <app-conference-chat-sidebar [messages]="messages()"></app-conference-chat-sidebar>
             }
         </aside>
         }

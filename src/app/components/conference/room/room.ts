@@ -8,6 +8,7 @@ import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItem
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { RemotePeerType } from "@shared/types/RemotePeerType";
 import { Router } from "@angular/router";
+import { MessageType } from "@shared/types/MessageType";
 
 @Component({
     selector: "app-conference-room",
@@ -24,6 +25,8 @@ export class Room {
     protected participants: WritableSignal<ParticipantType[]> = signal([]);
 
     private participantsWrapper: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement>>("participantsWrapper");
+
+    protected messages: Signal<MessageType[]> = computed<MessageType[]>(() => this.conferenceWebSocket.chatMessages());
 
     protected controlsItems: Signal<ConferenceControlsItemType[]> = computed<ConferenceControlsItemType[]>(() => [
         {

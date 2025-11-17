@@ -4,6 +4,7 @@ import { environment } from "@shared/environments/environment";
 import { RemotePeerType } from "@shared/types/RemotePeerType";
 import { MeetingsService } from "./meetings.service";
 import { MeetingType } from "@shared/types/MeetingType";
+import { MessageType } from "@shared/types/MessageType";
 
 @Injectable({
     providedIn: "root"
@@ -65,6 +66,9 @@ export class ConferenceWebsocket {
     public meeting: Signal<MeetingType | null> = computed<MeetingType | null>(() => this.internalMeeting());
 
     public isConferenceExists: Signal<boolean> = computed<boolean>(() => this.internalMeeting() !== null);
+
+    private internalChatMessages: WritableSignal<MessageType[]> = signal<MessageType[]>([]);
+    public chatMessages: Signal<MessageType[]> = computed<MessageType[]>(() => this.internalChatMessages());
 
     private meetingsService: MeetingsService = inject(MeetingsService);
 
@@ -259,6 +263,10 @@ export class ConferenceWebsocket {
             }));
         });
 
+        this.socket.on("chat-message", (message: MessageType) => {
+            this.internalChatMessages.update((messages: MessageType[]) => [...messages, message]);
+        });
+
         this.socket.on("user-leave", (socketId: string) => {
             this.closePeer(socketId);
         });
@@ -327,6 +335,18 @@ export class ConferenceWebsocket {
         this.isHandUp.update((value: boolean) => !value);
 
         this.socket?.emit(this.isHandUp() ? "hand-up" : "hand-down");
+    }
+
+    public sendMessage(content: string): void {
+        const message: MessageType = {
+            id: crypto.randomUUID(),
+            content: content,
+            senderName: this.localName()
+        };
+
+        this.internalChatMessages.update((messages: MessageType[]) => [...messages, message]);
+        
+        this.socket?.emit("chat-message", message);
     }
 
     private async startScreenShare(): Promise<void> {
