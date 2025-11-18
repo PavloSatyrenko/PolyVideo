@@ -11,6 +11,21 @@
         ></ui-input>
 
         <ui-checkbox
+            [(value)]="isGuestAllowed"
+            [label]="'Allow Guest Access'"
+        ></ui-checkbox>
+
+        <ui-checkbox
+            [(value)]="isWaitingRoom"
+            [label]="'Enable Waiting Room'"
+        ></ui-checkbox>
+
+        <ui-checkbox
+            [(value)]="isScreenSharing"
+            [label]="'Allow Participants to Share Screen'"
+        ></ui-checkbox>
+
+        <ui-checkbox
             [(value)]="isPlanned"
             [label]="'Schedule meeting'"
         ></ui-checkbox>

@@ -11,9 +11,26 @@ import { RecentMeetingType } from '@shared/types/RecentMeetingType';
 export class MeetingsService {
     private httpClient: HttpClient = inject(HttpClient);
 
-    public async createMeeting(meetingName: string, isPlanned: boolean, scheduledDate?: Date): Promise<MeetingType> {
-        const payload: { title: string, isPlanned: boolean, startTime?: string } = {
+    public async createMeeting(
+        meetingName: string,
+        isGuestAllowed: boolean,
+        isWaitingRoom: boolean,
+        isScreenSharing: boolean,
+        isPlanned: boolean,
+        scheduledDate?: Date
+    ): Promise<MeetingType> {
+        const payload: {
+            title: string,
+            isGuestAllowed: boolean,
+            isWaitingRoom: boolean,
+            isScreenSharing: boolean,
+            isPlanned: boolean,
+            startTime?: string
+        } = {
             title: meetingName,
+            isGuestAllowed: isGuestAllowed,
+            isWaitingRoom: isWaitingRoom,
+            isScreenSharing: isScreenSharing,
             isPlanned: isPlanned,
         };
 
@@ -42,5 +59,20 @@ export class MeetingsService {
 
     public async startMeeting(meetingCode: string): Promise<void> {
         await firstValueFrom(this.httpClient.post<void>(environment.serverURL + `/meetings/start/${meetingCode}`, {}));
+    }
+
+    public async updateMeetingOptions(
+        meetingCode: string,
+        title: string,
+        isWaitingRoom: boolean,
+        isScreenSharing: boolean,
+        isGuestAllowed: boolean
+    ): Promise<void> {
+        await firstValueFrom(this.httpClient.put<void>(environment.serverURL + `/meetings/${meetingCode}`, {
+            title: title,
+            isWaitingRoom: isWaitingRoom,
+            isScreenSharing: isScreenSharing,
+            isGuestAllowed: isGuestAllowed
+        }));
     }
 }

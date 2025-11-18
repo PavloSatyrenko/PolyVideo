@@ -2,14 +2,29 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 16px 32px;
+    padding: 16px 24px 24px 32px;
 }
 
 .sidebar__list {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding-right: 8px;
+    padding-bottom: 8px;
     overflow-y: auto;
+}
+
+.sidebar__list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar__list::-webkit-scrollbar-thumb {
+    background-color: var(--background-color);
+    border-radius: 4px;
+}
+
+.sidebar__list::-webkit-scrollbar-track {
+    background-color: transparent;
 }
 
 .sidebar__item {

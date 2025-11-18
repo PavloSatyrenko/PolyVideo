@@ -6,5 +6,8 @@ export type MeetingType = {
     isStarted: boolean;
     startTime: Date;
     endTime: Date | null;
+    isWaitingRoom: boolean;
+    isScreenSharing: boolean;
+    isGuestAllowed: boolean;
     ownerId: string;
 }

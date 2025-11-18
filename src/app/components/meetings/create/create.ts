@@ -21,6 +21,10 @@ export class Create {
     protected meetingName: WritableSignal<string> = signal<string>("");
     protected isPlanned: WritableSignal<boolean> = signal<boolean>(false);
 
+    protected isWaitingRoom: WritableSignal<boolean> = signal<boolean>(false);
+    protected isScreenSharing: WritableSignal<boolean> = signal<boolean>(false);
+    protected isGuestAllowed: WritableSignal<boolean> = signal<boolean>(false);
+
     protected scheduledDay: WritableSignal<string> = signal<string>("");
     protected scheduledMonth: WritableSignal<string> = signal<string>("");
     protected scheduledYear: WritableSignal<string> = signal<string>("");
@@ -101,6 +105,9 @@ export class Create {
 
             this.meetingsService.createMeeting(
                 this.meetingName(),
+                this.isGuestAllowed(),
+                this.isWaitingRoom(),
+                this.isScreenSharing(),
                 this.isPlanned(),
                 this.scheduledDate(),
             ).then(() => {
@@ -112,6 +119,9 @@ export class Create {
         else {
             this.meetingsService.createMeeting(
                 this.meetingName(),
+                this.isGuestAllowed(),
+                this.isWaitingRoom(),
+                this.isScreenSharing(),
                 this.isPlanned(),
             ).then((meeting: MeetingType) => {
                 this.router.navigate(["/conference", meeting.code]);

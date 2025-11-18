@@ -15,6 +15,9 @@
             } @if (isChatSidebarOpened()) {
             <app-conference-chat-sidebar [messages]="messages()"></app-conference-chat-sidebar>
             }
+            @if (isOptionsSidebarOpened()) {
+            <app-conference-options-sidebar [meeting]="meeting()"></app-conference-options-sidebar>
+            }
         </aside>
         }
     </div>

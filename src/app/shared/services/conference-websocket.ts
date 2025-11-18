@@ -81,6 +81,34 @@ export class ConferenceWebsocket {
             });
     }
 
+    public refreshMeetingInfo(
+        title: string,
+        isWaitingRoom: boolean,
+        isScreenSharing: boolean,
+        isGuestAllowed: boolean
+    ): void {
+        this.internalMeeting.update((meeting: MeetingType | null) => {
+            if (meeting) {
+                return {
+                    ...meeting,
+                    title: title,
+                    isWaitingRoom: isWaitingRoom,
+                    isScreenSharing: isScreenSharing,
+                    isGuestAllowed: isGuestAllowed
+                };
+            }
+
+            return meeting;
+        });
+
+        this.socket?.emit("meeting-info-updated", {
+            title: title,
+            isWaitingRoom: isWaitingRoom,
+            isScreenSharing: isScreenSharing,
+            isGuestAllowed: isGuestAllowed
+        });
+    }
+
     public connect(roomCode: string): void {
         this.socket = io(environment.serverURL + "/meeting");
 
@@ -89,6 +117,22 @@ export class ConferenceWebsocket {
         this.socket.emit("join", { roomCode: roomCode, name: this.localName() });
 
         this.meetingsService.addMeetingToRecent(roomCode);
+
+        this.socket.on("meeting-info-updated", (data: { title: string, isWaitingRoom: boolean, isScreenSharing: boolean, isGuestAllowed: boolean }) => {
+            this.internalMeeting.update((meeting: MeetingType | null) => {
+                if (meeting) {
+                    return {
+                        ...meeting,
+                        title: data.title,
+                        isWaitingRoom: data.isWaitingRoom,
+                        isScreenSharing: data.isScreenSharing,
+                        isGuestAllowed: data.isGuestAllowed
+                    };
+                }
+
+                return meeting;
+            });
+        });
 
         this.socket.on("all-users", (users: { socketId: string, name: string, isHandUp: boolean }[]) => {
             this.internalRemotePeers.update((currentStreams: Record<string, RemotePeerType>) => {
@@ -345,7 +389,7 @@ export class ConferenceWebsocket {
         };
 
         this.internalChatMessages.update((messages: MessageType[]) => [...messages, message]);
-        
+
         this.socket?.emit("chat-message", message);
     }
 

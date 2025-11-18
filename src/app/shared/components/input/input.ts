@@ -8,7 +8,6 @@ import { Component, computed, input, InputSignal, model, ModelSignal, OnInit, Si
     styleUrl: "./input.css",
 })
 export class Input implements OnInit {
-    public label: InputSignal<string> = input<string>("");
     public placeholder: InputSignal<string> = input<string>("");
     public size: InputSignal<"small" | "large"> = input<"small" | "large">("small");
     public theme: InputSignal<"default" | "primary"> = input<"default" | "primary">("primary");

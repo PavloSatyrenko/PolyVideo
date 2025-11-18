@@ -9,18 +9,23 @@ import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { RemotePeerType } from "@shared/types/RemotePeerType";
 import { Router } from "@angular/router";
 import { MessageType } from "@shared/types/MessageType";
+import { OptionsSidebar } from "../options-sidebar/options-sidebar";
+import { MeetingType } from "@shared/types/MeetingType";
 
 @Component({
     selector: "app-conference-room",
-    imports: [Participant, ControlsItem, ParticipantsSidebar, ChatSidebar],
+    imports: [Participant, ControlsItem, ParticipantsSidebar, ChatSidebar, OptionsSidebar],
     templateUrl: "./room.html",
     styleUrl: "./room.css"
 })
 export class Room {
+    protected meeting: Signal<MeetingType | null> = computed<MeetingType | null>(() => this.conferenceWebSocket.meeting());
+
     protected isParticipantsSidebarOpened: WritableSignal<boolean> = signal<boolean>(false);
     protected isChatSidebarOpened: WritableSignal<boolean> = signal<boolean>(false);
+    protected isOptionsSidebarOpened: WritableSignal<boolean> = signal<boolean>(false);
 
-    protected isSidebarOpened: Signal<boolean> = computed<boolean>(() => this.isParticipantsSidebarOpened() || this.isChatSidebarOpened());
+    protected isSidebarOpened: Signal<boolean> = computed<boolean>(() => this.isParticipantsSidebarOpened() || this.isChatSidebarOpened() || this.isOptionsSidebarOpened());
 
     protected participants: WritableSignal<ParticipantType[]> = signal([]);
 
@@ -221,13 +226,20 @@ export class Room {
             case "participants":
                 this.isParticipantsSidebarOpened.set(!this.isParticipantsSidebarOpened());
                 this.isChatSidebarOpened.set(false);
+                this.isOptionsSidebarOpened.set(false);
                 break;
             case "chat":
                 this.isChatSidebarOpened.set(!this.isChatSidebarOpened());
                 this.isParticipantsSidebarOpened.set(false);
+                this.isOptionsSidebarOpened.set(false);
                 break;
             case "hand":
                 this.conferenceWebSocket.toggleHand();
+                break;
+            case "other":
+                this.isOptionsSidebarOpened.set(!this.isOptionsSidebarOpened());
+                this.isParticipantsSidebarOpened.set(false);
+                this.isChatSidebarOpened.set(false);
                 break;
             case "leave":
                 this.conferenceWebSocket.leave();
