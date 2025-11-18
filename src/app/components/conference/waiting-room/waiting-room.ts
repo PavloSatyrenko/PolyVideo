@@ -50,21 +50,21 @@ export class WaitingRoom {
         await this.conferenceWebSocket.getUserMedia();
     }
 
-    protected cancelJoining(): void {
-        // this.conferenceWebSocket.closeConnection();
-        this.router.navigate(["/workspace", "meetings"]);
-    }
-
-    protected joinConference(): void {
-        this.conferenceWebSocket.localName.set(this.name());
-        this.onJoinConference.emit();
-    }
-
     protected toggleAudio(): void {
         this.conferenceWebSocket.toggleAudio();
     }
 
     protected toggleVideo(): void {
         this.conferenceWebSocket.toggleVideo();
+    }
+
+    protected cancelJoining(): void {
+        this.conferenceWebSocket.closeConnection();
+        this.router.navigate(["/workspace", "meetings"]);
+    }
+
+    protected joinConference(): void {
+        this.conferenceWebSocket.localName.set(this.name());
+        this.onJoinConference.emit();
     }
 }

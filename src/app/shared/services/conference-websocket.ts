@@ -398,12 +398,20 @@ export class ConferenceWebsocket {
         this.socket?.emit("stop-screen-share");
     }
 
+    public closeConnection(): void {
+        this.localAudioStream().getTracks().forEach((track: MediaStreamTrack) => track.stop());
+        this.localVideoStream().getTracks().forEach((track: MediaStreamTrack) => track.stop());
+        this.localScreenShareStream().getTracks().forEach((track: MediaStreamTrack) => track.stop());
+    }
+
     public leave(): void {
         for (const socketId in this.peerConnections) {
             this.closePeer(socketId);
         }
 
         this.stopScreenShare();
+
+        this.closeConnection();
 
         this.internalRemotePeers.set({});
 
