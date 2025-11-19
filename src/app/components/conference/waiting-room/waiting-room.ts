@@ -8,10 +8,11 @@ import { AuthService } from "@shared/services/auth.service";
 import { UserType } from "@shared/types/UserType";
 import { Router } from "@angular/router";
 import { Select } from "@shared/components/select/select";
+import { DeviceLabelPipe } from "@shared/pipes/device-label-pipe";
 
 @Component({
     selector: "app-conference-waiting-room",
-    imports: [ControlsItem, Title, Button, Select],
+    imports: [ControlsItem, Title, Button, Select, DeviceLabelPipe],
     templateUrl: "./waiting-room.html",
     styleUrl: "./waiting-room.css"
 })

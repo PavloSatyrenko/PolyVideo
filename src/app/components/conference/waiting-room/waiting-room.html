@@ -27,7 +27,11 @@
         </div>
 
         <div class="room__info">
-            <ui-title class="room__title" [title]="name()" [size]="'medium'"></ui-title>
+            <ui-title
+                class="room__title"
+                [title]="name()"
+                [size]="'medium'"
+            ></ui-title>
 
             <div class="room__devices">
                 <div class="device__item">
@@ -42,7 +46,7 @@
                         @for(device of availableVideoDevices(); track
                         device.deviceId) {
                         <option [value]="device.deviceId">
-                            {{ device.label }}
+                            {{ device.label | deviceLabel }}
                         </option>
                         }
                     </ui-select>
@@ -60,7 +64,7 @@
                         @for(device of availableAudioDevices(); track
                         device.deviceId) {
                         <option [value]="device.deviceId">
-                            {{ device.label }}
+                            {{ device.label | deviceLabel }}
                         </option>
                         }
                     </ui-select>
