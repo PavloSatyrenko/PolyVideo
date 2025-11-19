@@ -23,7 +23,6 @@ export class ParticipantsSidebar {
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
 
     protected isParticipantMenuOpened(participant: ParticipantType): boolean {
-        console.log(this.openedMenuParticipantId() === participant.id, this.openedMenuParticipantId(), participant.id);
         return this.openedMenuParticipantId() === participant.id;
     }
 
