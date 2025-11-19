@@ -376,8 +376,6 @@ export class ConferenceWebsocket {
 
                 this.internalDevices.set(Array.from(uniqueDevices.values()));
             };
-
-            console.log(this.internalDevices());
         }
         catch (error) {
             console.error("getUserMedia error", error);

@@ -1,7 +1,7 @@
 <div class="sidebar">
-    <ui-title [title]="'Options'" [size]="'medium'"></ui-title>
-
     <div class="sidebar__content">
+        <ui-title [title]="'Meeting Options'" [size]="'medium'"></ui-title>
+
         <div class="sidebar__item">
             <ui-input
                 [placeholder]="'Meeting Title'"
@@ -31,6 +31,42 @@
                 [label]="'Enable Guest Access'"
                 [(value)]="isGuestAccessEnabled"
             ></ui-checkbox>
+        </div>
+
+        <ui-title [title]="'Media Options'" [size]="'medium'"></ui-title>
+
+        <div class="sidebar__item">
+            <ui-select
+                [label]="'Camera'"
+                [value]="selectedVideoDeviceId()"
+                (valueChange)="changeVideoDevice($event)"
+                [size]="'small'"
+                [theme]="'primary'"
+                [isFullWidth]="true"
+            >
+                @for(device of availableVideoDevices(); track device.deviceId) {
+                <option [value]="device.deviceId">
+                    {{ device.label | deviceLabel }}
+                </option>
+                }
+            </ui-select>
+        </div>
+
+        <div class="sidebar__item">
+            <ui-select
+                [label]="'Microphone'"
+                [value]="selectedAudioDeviceId()"
+                (valueChange)="changeAudioDevice($event)"
+                [size]="'small'"
+                [theme]="'primary'"
+                [isFullWidth]="true"
+            >
+                @for(device of availableAudioDevices(); track device.deviceId) {
+                <option [value]="device.deviceId">
+                    {{ device.label | deviceLabel }}
+                </option>
+                }
+            </ui-select>
         </div>
     </div>
 
