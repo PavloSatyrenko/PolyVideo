@@ -2,15 +2,18 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    height: 100%;
     padding: 16px 24px 24px 32px;
 }
 
 .sidebar__list {
     display: flex;
+    flex-grow: 1;
     flex-direction: column;
     gap: 12px;
     padding-right: 8px;
     padding-bottom: 8px;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
@@ -38,7 +41,7 @@
     display: flex;
     gap: 12px;
     align-items: center;
-    width: calc(100% - 60px - 12px);
+    width: calc(100% - 96px - 12px);
 }
 
 .item__image-wrapper {
@@ -71,6 +74,7 @@
 }
 
 .item__icon {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -78,4 +82,47 @@
     height: 24px;
     font-size: 18px;
     color: var(--secondary-color);
+}
+
+.item__icon_clickable {
+    cursor: pointer;
+}
+
+.menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: var(--z-index-1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: max-content;
+    padding: 12px;
+    background-color: var(--background-color);
+    border-radius: 12px;
+}
+
+.menu__item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.menu__item:hover {
+    background-color: var(--surface-hover-color);
+}
+
+.menu__icon {
+    width: 20px;
+    font-size: 18px;
+    color: var(--secondary-color);
+}
+
+.menu__text {
+    font-size: 16px;
+    color: var(--primary-text-color);
 }

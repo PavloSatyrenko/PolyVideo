@@ -41,3 +41,36 @@
     background-color: var(--surface-color);
     border-radius: 8px;
 }
+
+.popup {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-index-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #00000080;
+}
+
+.popup__content {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    width: 600px;
+    padding: 24px;
+    background-color: var(--surface-color);
+    border-radius: 16px;
+}
+
+.popup__text {
+    text-align: center;
+}
+
+.popup__actions {
+    display: flex;
+    gap: 12px;
+}
+
+.popup__button {
+    flex-grow: 1;
+}

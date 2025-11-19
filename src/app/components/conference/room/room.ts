@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, effect, ElementRef, HostListener, inject, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
 import { Participant } from "@components/conference/participant/participant";
 import { ControlsItem } from "@components/conference/controls-item/controls-item";
 import { ParticipantsSidebar } from "@components/conference/participants-sidebar/participants-sidebar";
@@ -11,10 +11,12 @@ import { Router } from "@angular/router";
 import { MessageType } from "@shared/types/MessageType";
 import { OptionsSidebar } from "../options-sidebar/options-sidebar";
 import { MeetingType } from "@shared/types/MeetingType";
+import { Button } from "@shared/components/button/button";
+import { Title } from "@shared/components/title/title";
 
 @Component({
     selector: "app-conference-room",
-    imports: [Participant, ControlsItem, ParticipantsSidebar, ChatSidebar, OptionsSidebar],
+    imports: [Participant, ControlsItem, ParticipantsSidebar, ChatSidebar, OptionsSidebar, Title, Button],
     templateUrl: "./room.html",
     styleUrl: "./room.css"
 })
@@ -30,6 +32,11 @@ export class Room {
     protected participants: WritableSignal<ParticipantType[]> = signal([]);
 
     private participantsWrapper: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement>>("participantsWrapper");
+
+    protected isRequestedEnableVideoByOwner: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isRequestedEnableVideoByOwner() && !this.isRequestedUnmuteByOwner());
+    protected isRequestedUnmuteByOwner: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isRequestedUnmuteByOwner());
+
+    private popupContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("popup");
 
     protected messages: Signal<MessageType[]> = computed<MessageType[]>(() => this.conferenceWebSocket.chatMessages());
 
@@ -245,6 +252,72 @@ export class Room {
                 this.conferenceWebSocket.leave();
                 this.router.navigate(["/"]);
                 break;
+        }
+    }
+
+    protected enableVideo(): void {
+        if (!this.conferenceWebSocket.isVideoEnabled()) {
+            this.conferenceWebSocket.toggleVideo();
+        }
+
+        this.conferenceWebSocket.isRequestedEnableVideoByOwner.set(false);
+    }
+
+    protected declineEnableVideo(): void {
+        this.conferenceWebSocket.isRequestedEnableVideoByOwner.set(false);
+    }
+
+    protected unmute(): void {
+        if (!this.conferenceWebSocket.isAudioEnabled()) {
+            this.conferenceWebSocket.toggleAudio();
+        }
+
+        this.conferenceWebSocket.isRequestedUnmuteByOwner.set(false);
+    }
+
+    protected declineUnmute(): void {
+        this.conferenceWebSocket.isRequestedUnmuteByOwner.set(false);
+    }
+
+    @HostListener("document:click", ["$event"])
+    protected onBackdropClick(event: MouseEvent): void {
+        if (!this.popupContent()) {
+            return;
+        }
+
+        const targetNode: Node | null = event.target as Node | null;
+
+        if (targetNode && this.popupContent()?.nativeElement.contains(targetNode)) {
+            return;
+        }
+
+        if (this.isRequestedUnmuteByOwner()) {
+            this.declineUnmute();
+            return;
+        }
+
+        if (this.isRequestedEnableVideoByOwner()) {
+            this.declineEnableVideo();
+        }
+    }
+
+    @HostListener("document:keydown", ["$event"])
+    protected onDocumentKeyDown(event: KeyboardEvent): void {
+        if (!this.popupContent()) {
+            return;
+        }
+
+        if (event.key === "Escape" || event.key === "Esc") {
+            event.preventDefault();
+
+            if (this.isRequestedUnmuteByOwner()) {
+                this.declineUnmute();
+                return;
+            }
+
+            if (this.isRequestedEnableVideoByOwner()) {
+                this.declineEnableVideo();
+            }
         }
     }
 }

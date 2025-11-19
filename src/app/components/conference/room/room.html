@@ -11,12 +11,17 @@
         @if (isSidebarOpened()) {
         <aside class="conference__sidebar">
             @if (isParticipantsSidebarOpened()) {
-            <app-conference-participants-sidebar [participants]="participants()"></app-conference-participants-sidebar>
+            <app-conference-participants-sidebar
+                [participants]="participants()"
+            ></app-conference-participants-sidebar>
             } @if (isChatSidebarOpened()) {
-            <app-conference-chat-sidebar [messages]="messages()"></app-conference-chat-sidebar>
-            }
-            @if (isOptionsSidebarOpened()) {
-            <app-conference-options-sidebar [meeting]="meeting()"></app-conference-options-sidebar>
+            <app-conference-chat-sidebar
+                [messages]="messages()"
+            ></app-conference-chat-sidebar>
+            } @if (isOptionsSidebarOpened()) {
+            <app-conference-options-sidebar
+                [meeting]="meeting()"
+            ></app-conference-options-sidebar>
             }
         </aside>
         }
@@ -31,3 +36,73 @@
         }
     </div>
 </section>
+
+@if (isRequestedEnableVideoByOwner()) {
+<div class="popup">
+    <div class="popup__content" #popup>
+        <ui-title
+            class="popup__text"
+            [title]="'The meeting owner has requested you to enable your video.'"
+            [size]="'small'"
+        ></ui-title>
+
+        <div class="popup__actions">
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-video'"
+                [label]="'Enable Video'"
+                [size]="'small'"
+                [type]="'primary'"
+                [isFullWidth]="true"
+                (click)="enableVideo()"
+            >
+            </ui-button>
+
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-ban'"
+                [label]="'Decline'"
+                [size]="'small'"
+                [type]="'primary-line'"
+                [isFullWidth]="true"
+                (click)="declineEnableVideo()"
+            >
+            </ui-button>
+        </div>
+    </div>
+</div>
+} @if (isRequestedUnmuteByOwner()) {
+<div class="popup">
+    <div class="popup__content" #popup>
+        <ui-title
+            class="popup__text"
+            [title]="'The meeting owner has requested you to unmute your microphone.'"
+            [size]="'small'"
+        ></ui-title>
+
+        <div class="popup__actions">
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-microphone'"
+                [label]="'Unmute'"
+                [size]="'small'"
+                [type]="'primary'"
+                [isFullWidth]="true"
+                (click)="unmute()"
+            >
+            </ui-button>
+
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-ban'"
+                [label]="'Decline'"
+                [size]="'small'"
+                [type]="'primary-line'"
+                [isFullWidth]="true"
+                (click)="declineUnmute()"
+            >
+            </ui-button>
+        </div>
+    </div>
+</div>
+}

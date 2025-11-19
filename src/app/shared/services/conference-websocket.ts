@@ -5,6 +5,8 @@ import { RemotePeerType } from "@shared/types/RemotePeerType";
 import { MeetingsService } from "./meetings.service";
 import { MeetingType } from "@shared/types/MeetingType";
 import { MessageType } from "@shared/types/MessageType";
+import { Router } from "@angular/router";
+import { AuthService } from "./auth.service";
 
 @Injectable({
     providedIn: "root"
@@ -74,10 +76,25 @@ export class ConferenceWebsocket {
 
     public isConferenceExists: Signal<boolean> = computed<boolean>(() => this.internalMeeting() !== null);
 
+    public isMeetingOwner: Signal<boolean> = computed<boolean>(() => {
+        const meeting: MeetingType | null = this.internalMeeting();
+
+        if (!meeting) {
+            return false;
+        }
+
+        return meeting.ownerId === this.authService.user()?.id;
+    });
+
+    public isRequestedUnmuteByOwner: WritableSignal<boolean> = signal<boolean>(false);
+    public isRequestedEnableVideoByOwner: WritableSignal<boolean> = signal<boolean>(false);
+
     private internalChatMessages: WritableSignal<MessageType[]> = signal<MessageType[]>([]);
     public chatMessages: Signal<MessageType[]> = computed<MessageType[]>(() => this.internalChatMessages());
 
     private meetingsService: MeetingsService = inject(MeetingsService);
+    private authService: AuthService = inject(AuthService);
+    private router: Router = inject(Router);
 
     public async setMeetingByCode(meetingCode: string): Promise<void> {
         await this.meetingsService.getMeetingByCode(meetingCode)
@@ -117,7 +134,7 @@ export class ConferenceWebsocket {
     }
 
     public connect(roomCode: string): void {
-        this.socket = io(environment.serverURL + "/meeting");
+        this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
 
         this.conferenceCode = roomCode;
 
@@ -314,6 +331,31 @@ export class ConferenceWebsocket {
             }));
         });
 
+        this.socket.on("muted-by-owner", () => {
+            if (this.isAudioEnabled()) {
+                this.toggleAudio();
+            }
+        });
+
+        this.socket.on("requested-unmute-by-owner", () => {
+            this.isRequestedUnmuteByOwner.set(true);
+        });
+
+        this.socket.on("video-disabled-by-owner", () => {
+            if (this.isVideoEnabled()) {
+                this.toggleVideo();
+            }
+        });
+
+        this.socket.on("requested-enable-video-by-owner", () => {
+            this.isRequestedEnableVideoByOwner.set(true);
+        });
+
+        this.socket.on("removed-from-meeting", () => {
+            this.leave();
+            this.router.navigate(["/removed-from-meeting"]);
+        });
+
         this.socket.on("chat-message", (message: MessageType) => {
             this.internalChatMessages.update((messages: MessageType[]) => [...messages, message]);
         });
@@ -469,6 +511,26 @@ export class ConferenceWebsocket {
         this.isHandUp.update((value: boolean) => !value);
 
         this.socket?.emit(this.isHandUp() ? "hand-up" : "hand-down");
+    }
+
+    public muteUser(socketId: string): void {
+        this.socket?.emit("mute-user", socketId);
+    }
+
+    public unmuteUser(socketId: string): void {
+        this.socket?.emit("unmute-user", socketId);
+    }
+
+    public disableVideoUser(socketId: string): void {
+        this.socket?.emit("disable-video-user", socketId);
+    }
+
+    public enableVideoUser(socketId: string): void {
+        this.socket?.emit("enable-video-user", socketId);
+    }
+
+    public kickUser(socketId: string): void {
+        this.socket?.emit("remove-user", socketId);
     }
 
     public sendMessage(content: string): void {

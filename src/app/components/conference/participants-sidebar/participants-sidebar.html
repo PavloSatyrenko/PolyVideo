@@ -5,24 +5,82 @@
         @for(participant of visibleParticipants(); track participant.id) {
         <div class="sidebar__item">
             <div class="item__info">
-                <span [ngClass]="{'item__image-wrapper_bordered': participant.isHandUp}" class="item__image-wrapper"></span>
+                <span
+                    [ngClass]="{'item__image-wrapper_bordered': participant.isHandUp}"
+                    class="item__image-wrapper"
+                ></span>
                 <span class="item__name">{{ participant.name }}</span>
             </div>
 
             <div class="item__actions">
                 <span class="item__icon">
                     @if (participant.isAudioEnabled) {
-                    <i class="control__icon fa-solid fa-microphone"></i>
+                    <i class="fa-solid fa-microphone"></i>
                     } @else {
-                    <i class="control__icon fa-solid fa-microphone-slash"></i>
+                    <i class="fa-solid fa-microphone-slash"></i>
                     }
                 </span>
 
                 <span class="item__icon">
                     @if (participant.isVideoEnabled) {
-                    <i class="control__icon fa-solid fa-video"></i>
+                    <i class="fa-solid fa-video"></i>
                     } @else {
-                    <i class="control__icon fa-solid fa-video-slash"></i>
+                    <i class="fa-solid fa-video-slash"></i>
+                    }
+                </span>
+
+                <span
+                    class="item__icon item__icon_clickable"
+                    (click)="openParticipantMenu(participant)"
+                >
+                    <i class="fa-solid fa-ellipsis-h"></i>
+
+                    @if (isParticipantMenuOpened(participant)) {
+                    <div class="menu" #menu (click)="stopPropagation($event)">
+                        @if (participant.isAudioEnabled) {
+                        <div
+                            class="menu__item"
+                            (click)="muteParticipant(participant)"
+                        >
+                            <i
+                                class="fa-solid fa-microphone-slash menu__icon"
+                            ></i>
+                            <span class="menu__text">Mute</span>
+                        </div>
+                        } @else {
+                        <div
+                            class="menu__item"
+                            (click)="unmuteParticipant(participant)"
+                        >
+                            <i class="fa-solid fa-microphone menu__icon"></i>
+                            <span class="menu__text">Ask to Unmute</span>
+                        </div>
+                        } @if (participant.isVideoEnabled) {
+                        <div
+                            class="menu__item"
+                            (click)="disableVideoParticipant(participant)"
+                        >
+                            <i class="fa-solid fa-video-slash menu__icon"></i>
+                            <span class="menu__text">Stop Video</span>
+                        </div>
+                        } @else {
+                        <div
+                            class="menu__item"
+                            (click)="enableVideoParticipant(participant)"
+                        >
+                            <i class="fa-solid fa-video menu__icon"></i>
+                            <span class="menu__text">Ask to Start Video</span>
+                        </div>
+                        }
+
+                        <div
+                            class="menu__item"
+                            (click)="kickParticipant(participant)"
+                        >
+                            <i class="fa-solid fa-user-slash menu__icon"></i>
+                            <span class="menu__text">Remove Participant</span>
+                        </div>
+                    </div>
                     }
                 </span>
             </div>
