@@ -21,9 +21,9 @@ export class Create {
     protected meetingName: WritableSignal<string> = signal<string>("");
     protected isPlanned: WritableSignal<boolean> = signal<boolean>(false);
 
-    protected isWaitingRoom: WritableSignal<boolean> = signal<boolean>(false);
-    protected isScreenSharing: WritableSignal<boolean> = signal<boolean>(false);
-    protected isGuestAllowed: WritableSignal<boolean> = signal<boolean>(false);
+    protected isWaitingRoom: WritableSignal<boolean> = signal<boolean>(true);
+    protected isScreenSharing: WritableSignal<boolean> = signal<boolean>(true);
+    protected isGuestAllowed: WritableSignal<boolean> = signal<boolean>(true);
 
     protected scheduledDay: WritableSignal<string> = signal<string>("");
     protected scheduledMonth: WritableSignal<string> = signal<string>("");
