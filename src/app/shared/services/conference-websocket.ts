@@ -54,6 +54,13 @@ export class ConferenceWebsocket {
     private internalDevices: WritableSignal<MediaDeviceInfo[]> = signal<MediaDeviceInfo[]>([]);
     public devices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => this.internalDevices());
 
+    private internalSelectedVideoDeviceId: WritableSignal<string> = signal<string>("");
+    public selectedVideoDeviceId: Signal<string> = computed<string>(() => this.internalSelectedVideoDeviceId())
+
+    private internalSelectedAudioDeviceId: WritableSignal<string> = signal<string>("");
+    public selectedAudioDeviceId: Signal<string> = computed<string>(() => this.internalSelectedAudioDeviceId())
+
+
     private internalRemotePeers: WritableSignal<Record<string, RemotePeerType>> = signal<Record<string, RemotePeerType>>({});
     public remotePeers: Signal<Record<string, RemotePeerType>> = computed<Record<string, RemotePeerType>>(() => this.internalRemotePeers());
 
@@ -339,7 +346,38 @@ export class ConferenceWebsocket {
             this.internalLocalAudioStream.set(new MediaStream(stream.getAudioTracks()));
             this.internalLocalAudioTrigger.update((value: number) => value + 1);
 
-            this.internalDevices.set(await navigator.mediaDevices.enumerateDevices());
+            const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
+
+            const uniqueDevices: Map<string, MediaDeviceInfo> = new Map();
+            devices.forEach((device: MediaDeviceInfo) => {
+                const key: string = device.kind + " " + device.groupId;
+
+                if (!uniqueDevices.has(key)) {
+                    uniqueDevices.set(key, device);
+                }
+            });
+
+            this.internalDevices.set(Array.from(uniqueDevices.values()));
+
+            this.internalSelectedVideoDeviceId.set(this.internalLocalVideoStream().getVideoTracks()[0]?.getSettings().deviceId || "");
+            this.internalSelectedAudioDeviceId.set(this.internalLocalAudioStream().getAudioTracks()[0]?.getSettings().deviceId || "");
+
+            navigator.mediaDevices.ondevicechange = async () => {
+                const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
+
+                const uniqueDevices: Map<string, MediaDeviceInfo> = new Map();
+                devices.forEach((device: MediaDeviceInfo) => {
+                    const key: string = device.kind + " " + device.groupId;
+
+                    if (!uniqueDevices.has(key)) {
+                        uniqueDevices.set(key, device);
+                    }
+                });
+
+                this.internalDevices.set(Array.from(uniqueDevices.values()));
+            };
+
+            console.log(this.internalDevices());
         }
         catch (error) {
             console.error("getUserMedia error", error);
@@ -364,6 +402,60 @@ export class ConferenceWebsocket {
         this.internalLocalAudioTrigger.update((value: number) => value + 1);
 
         this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
+    }
+
+    public async changeVideoDevice(deviceId: string): Promise<void> {
+        try {
+            const newStream: MediaStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    deviceId: {
+                        exact: deviceId
+                    }
+                }
+            });
+
+            this.internalLocalVideoStream.set(new MediaStream(newStream.getVideoTracks()));
+            this.internalLocalVideoTrigger.update((value: number) => value + 1);
+            this.internalSelectedVideoDeviceId.set(deviceId);
+
+            for (const peerConnection of Object.values(this.peerConnections)) {
+                const senders: RTCRtpSender[] = peerConnection.getSenders().filter((sender: RTCRtpSender) => sender.track?.kind === "video");
+
+                senders.forEach((sender: RTCRtpSender, index: number) => {
+                    sender.replaceTrack(newStream.getVideoTracks()[index]);
+                });
+            }
+        }
+        catch (error) {
+            console.error("changeVideoDevice error", error);
+        }
+    }
+
+    public async changeAudioDevice(deviceId: string): Promise<void> {
+        try {
+            const newStream: MediaStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    deviceId: {
+                        exact: deviceId
+                    }
+                }
+            });
+
+            this.internalLocalAudioStream.set(new MediaStream(newStream.getAudioTracks()));
+            this.internalLocalAudioTrigger.update((value: number) => value + 1);
+            this.internalSelectedAudioDeviceId.set(deviceId);
+
+            for (const peerConnection of Object.values(this.peerConnections)) {
+                const senders: RTCRtpSender[] = peerConnection.getSenders().filter((sender: RTCRtpSender) => sender.track?.kind === "audio");
+
+                senders.forEach((sender: RTCRtpSender, index: number) => {
+                    sender.replaceTrack(newStream.getAudioTracks()[index]);
+                });
+            }
+        }
+        catch (error) {
+            console.error("changeAudioDevice error", error);
+        }
     }
 
     public async toggleScreenShare(): Promise<void> {

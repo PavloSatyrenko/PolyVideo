@@ -7,10 +7,11 @@ import { ConferenceControlsItemType } from "@shared/types/ConferenceControlsItem
 import { AuthService } from "@shared/services/auth.service";
 import { UserType } from "@shared/types/UserType";
 import { Router } from "@angular/router";
+import { Select } from "@shared/components/select/select";
 
 @Component({
     selector: "app-conference-waiting-room",
-    imports: [ControlsItem, Title, Button],
+    imports: [ControlsItem, Title, Button, Select],
     templateUrl: "./waiting-room.html",
     styleUrl: "./waiting-room.css"
 })
@@ -30,6 +31,19 @@ export class WaitingRoom {
     }));
 
     protected name: WritableSignal<string> = signal<string>("");
+
+    protected availableVideoDevices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => {
+        return this.conferenceWebSocket.devices()
+            .filter((device: MediaDeviceInfo) => device.kind === "videoinput");
+    });
+
+    protected availableAudioDevices: Signal<MediaDeviceInfo[]> = computed<MediaDeviceInfo[]>(() => {
+        return this.conferenceWebSocket.devices()
+            .filter((device: MediaDeviceInfo) => device.kind === "audioinput");
+    });
+
+    protected selectedVideoDeviceId: Signal<string> = computed<string>(() => this.conferenceWebSocket.selectedVideoDeviceId());
+    protected selectedAudioDeviceId: Signal<string> = computed<string>(() => this.conferenceWebSocket.selectedAudioDeviceId());
 
     public onJoinConference: OutputEmitterRef<void> = output<void>();
 
@@ -58,6 +72,14 @@ export class WaitingRoom {
         this.conferenceWebSocket.toggleVideo();
     }
 
+    protected changeVideoDevice(deviceId: string): void {
+        this.conferenceWebSocket.changeVideoDevice(deviceId);
+    }
+
+    protected changeAudioDevice(deviceId: string): void {
+        this.conferenceWebSocket.changeAudioDevice(deviceId);
+    }
+    
     protected cancelJoining(): void {
         this.conferenceWebSocket.closeConnection();
         this.router.navigate(["/workspace", "meetings"]);

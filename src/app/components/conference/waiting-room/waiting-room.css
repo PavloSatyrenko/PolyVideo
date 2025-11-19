@@ -48,9 +48,19 @@
 .room__info {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 16px;
     width: 400px;
+}
+
+.room__title {
     text-align: center;
+}
+
+.room__devices {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .room__buttons {
