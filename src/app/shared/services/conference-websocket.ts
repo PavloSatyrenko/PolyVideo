@@ -86,6 +86,8 @@ export class ConferenceWebsocket {
         return meeting.ownerId === this.authService.user()?.id;
     });
 
+    public hasHostJoined: WritableSignal<boolean> = signal<boolean>(true);
+
     public isRequestedUnmuteByOwner: WritableSignal<boolean> = signal<boolean>(false);
     public isRequestedEnableVideoByOwner: WritableSignal<boolean> = signal<boolean>(false);
 
@@ -134,7 +136,9 @@ export class ConferenceWebsocket {
     }
 
     public connect(roomCode: string): void {
-        this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
+        if (!this.socket) {
+            this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
+        }
 
         this.conferenceCode = roomCode;
 
@@ -362,6 +366,28 @@ export class ConferenceWebsocket {
 
         this.socket.on("user-leave", (socketId: string) => {
             this.closePeer(socketId);
+        });
+    }
+
+    public requestToJoin(roomCode: string): void {
+        if (!this.socket) {
+            this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
+        }
+
+        this.hasHostJoined.set(true);
+
+        this.socket.emit("request-to-join", { roomCode, name: this.localName() });
+
+        this.socket.on("admin-not-found", () => {
+            this.hasHostJoined.set(false);
+        });
+
+        this.socket.on("request-approved", () => {
+            this.connect(roomCode);
+        });
+
+        this.socket.on("request-denied", () => {
+            this.leave();
         });
     }
 

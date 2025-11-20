@@ -2,6 +2,7 @@ import { Component, computed, inject, OnDestroy, OnInit, Signal, signal, Writabl
 import { ActivatedRoute, Params, Router } from "@angular/router";
 import { Room } from "@components/conference/room/room";
 import { WaitingRoom } from "@components/conference/waiting-room/waiting-room";
+import { AuthService } from "@shared/services/auth.service";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 
 @Component({
@@ -14,11 +15,14 @@ export class Conference implements OnInit, OnDestroy {
     protected conferenceCode: WritableSignal<string> = signal<string>("");
 
     protected isConferenceExists: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isConferenceExists());
+
+    protected isJoining: WritableSignal<boolean> = signal<boolean>(false);
     protected isConnected: WritableSignal<boolean> = signal<boolean>(false);
 
     private routeSubscription: any;
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    private authService: AuthService = inject(AuthService);
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
     private router: Router = inject(Router);
 
@@ -50,8 +54,18 @@ export class Conference implements OnInit, OnDestroy {
     }
 
     protected joinConference(): void {
-        this.conferenceWebSocket.connect(this.conferenceCode());
+        if (!this.conferenceWebSocket.meeting()?.isGuestAllowed && !this.authService.user()){
+            alert("You must be logged in to join this conference.");
+            return;
+        }
 
-        this.isConnected.set(true);
+        if (!this.conferenceWebSocket.meeting()?.isWaitingRoom) {
+            this.conferenceWebSocket.connect(this.conferenceCode());
+            this.isConnected.set(true);
+        }
+        else {
+            this.conferenceWebSocket.requestToJoin(this.conferenceCode());
+            this.isJoining.set(true);
+        }
     }
 }
