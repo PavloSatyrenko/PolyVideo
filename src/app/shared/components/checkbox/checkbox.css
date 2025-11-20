@@ -73,5 +73,5 @@
 }
 
 .label__text_disabled {
-    color: var(--disabled-color);
+    color: var(--disabled-text-color);
 }
