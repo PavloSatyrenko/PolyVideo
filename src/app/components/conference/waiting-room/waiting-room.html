@@ -27,7 +27,7 @@
         </div>
 
         <div class="room__info">
-            @if (!isAuthorized()) {
+            @if (canChangeName()) {
             <div class="room__name">
                 <ui-input
                     [placeholder]="'Input Your Name...'"

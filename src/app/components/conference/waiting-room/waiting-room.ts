@@ -34,7 +34,7 @@ export class WaitingRoom {
         isEnabled: this.conferenceWebSocket.isVideoEnabled()
     }));
 
-    protected isAuthorized: Signal<boolean> = computed<boolean>(() => !!this.authService.user());
+    protected canChangeName: Signal<boolean> = computed<boolean>(() => !this.authService.user() && !this.conferenceWebSocket.isJoining());
 
     protected name: WritableSignal<string> = signal<string>("");
 
