@@ -27,11 +27,33 @@
         </div>
 
         <div class="room__info">
+            @if (!isAuthorized()) {
+            <div class="room__name">
+                <ui-input
+                    [placeholder]="'Input Your Name...'"
+                    [size]="'large'"
+                    [theme]="'primary'"
+                    [isFullWidth]="true"
+                    [(value)]="name"
+                ></ui-input>
+
+                <ui-button
+                    [label]="'Log in'"
+                    [icon]="'fa-solid fa-right-to-bracket'"
+                    [size]="'large'"
+                    [type]="'primary'"
+                    [isFullWidth]="true"
+                    [routerLink]="['/auth', 'login']"
+                    [queryParams]="{ redirect: '/conference/' + meetingCode()}"
+                ></ui-button>
+            </div>
+            } @else {
             <ui-title
                 class="room__title"
                 [title]="name()"
                 [size]="'medium'"
             ></ui-title>
+            }
 
             <div class="room__devices">
                 <div class="device__item">

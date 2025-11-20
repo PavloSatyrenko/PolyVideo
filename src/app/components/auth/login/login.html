@@ -42,7 +42,7 @@
 
         <span class="login__redirect">
             Don't have an account?
-            <a class="redirect__link" [routerLink]="['/auth', 'signup']">Sign Up</a>
+            <a class="redirect__link" [routerLink]="['/auth', 'signup']" [queryParamsHandling]="'preserve'">Sign Up</a>
         </span>
     </form>
 </div>

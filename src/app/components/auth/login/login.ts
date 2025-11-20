@@ -49,7 +49,9 @@ export class Login {
             this.email(),
             this.password(),
         ).then(() => {
-            this.router.navigate(["/"]);
+            const returnUrl: string = this.router.parseUrl(this.router.url).queryParams["redirect"] || "/";
+
+            this.router.navigate([returnUrl]);
         }).catch((error: any) => {
             console.error("Sign Up Error:", error);
         });

@@ -52,6 +52,12 @@
     width: 400px;
 }
 
+.room__name {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .room__title {
     text-align: center;
 }

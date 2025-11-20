@@ -74,7 +74,12 @@
 
         <span class="signup__redirect">
             Already have an account?
-            <a class="redirect__link" [routerLink]="['/auth', 'login']">Log In</a>
+            <a
+                class="redirect__link"
+                [routerLink]="['/auth', 'login']"
+                [queryParamsHandling]="'preserve'"
+                >Log In</a
+            >
         </span>
     </form>
 </div>
