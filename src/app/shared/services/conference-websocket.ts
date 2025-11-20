@@ -166,8 +166,6 @@ export class ConferenceWebsocket {
 
                     return [...requests, { name: data.name, socketId: data.socketId }];
                 });
-
-                console.log(this.internalRequestToJoin());
             });
         }
 
@@ -406,6 +404,14 @@ export class ConferenceWebsocket {
         this.isJoining.set(true);
 
         this.socket.on("owner-not-found", () => {
+            this.hasOwnerJoined.set(false);
+        });
+
+        this.socket.on("owner-joined", () => {
+            this.hasOwnerJoined.set(true);
+        });
+
+        this.socket.on("owner-left", () => {
             this.hasOwnerJoined.set(false);
         });
 
