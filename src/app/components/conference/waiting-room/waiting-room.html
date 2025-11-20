@@ -114,14 +114,14 @@
             <div class="room__loader-wrapper">
                 <div class="room__loader"></div>
 
-                @if (hasHostJoined()) {
+                @if (hasOwnerJoined()) {
                 <ui-title
                     [title]="'Request to join has been sent...'"
                     [size]="'small'"
                 ></ui-title>
                 } @else {
                 <ui-title
-                    [title]="'Waiting for the host to join...'"
+                    [title]="'Waiting for the owner to join...'"
                     [size]="'small'"
                 ></ui-title>
                 }

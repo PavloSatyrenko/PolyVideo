@@ -52,7 +52,7 @@ export class WaitingRoom {
     protected selectedAudioDeviceId: Signal<string> = computed<string>(() => this.conferenceWebSocket.selectedAudioDeviceId());
 
     protected isJoining: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isJoining());
-    protected hasHostJoined: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.hasHostJoined());
+    protected hasOwnerJoined: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.hasOwnerJoined());
     protected isClickToJoinDisabled: Signal<boolean> = computed<boolean>(() => this.isJoining() || !this.name().trim().length);
 
     public onJoinConference: OutputEmitterRef<void> = output<void>();

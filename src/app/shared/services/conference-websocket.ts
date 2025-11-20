@@ -89,7 +89,7 @@ export class ConferenceWebsocket {
         return meeting.ownerId === this.authService.user()?.id;
     });
 
-    public hasHostJoined: WritableSignal<boolean> = signal<boolean>(true);
+    public hasOwnerJoined: WritableSignal<boolean> = signal<boolean>(true);
 
     public isRequestedUnmuteByOwner: WritableSignal<boolean> = signal<boolean>(false);
     public isRequestedEnableVideoByOwner: WritableSignal<boolean> = signal<boolean>(false);
@@ -399,14 +399,14 @@ export class ConferenceWebsocket {
             this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
         }
 
-        this.hasHostJoined.set(true);
+        this.hasOwnerJoined.set(true);
 
         this.socket.emit("request-to-join", { roomCode, name: this.localName() });
 
         this.isJoining.set(true);
 
-        this.socket.on("admin-not-found", () => {
-            this.hasHostJoined.set(false);
+        this.socket.on("owner-not-found", () => {
+            this.hasOwnerJoined.set(false);
         });
 
         this.socket.on("request-approved", () => {
