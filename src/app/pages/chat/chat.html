@@ -1,1 +1,8 @@
-<p>chat works!</p>
+<div class="chats">
+    <div class="chats__list">
+        <app-chat-list
+            [chats]="chats()"
+            [(selectedChatUserId)]="selectedChatUserId"
+        ></app-chat-list>
+    </div>
+</div>

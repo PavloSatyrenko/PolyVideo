@@ -1,0 +1,8 @@
+.chats {
+    display: flex;
+    height: 100%;
+}
+
+.chats__list {
+    /* padding: 16px 12px; */
+}

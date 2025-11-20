@@ -1,0 +1,18 @@
+<div class="list">
+    @for (chat of chats(); track chat.user.id) {
+    <div
+        [ngClass]="{ 'list__item_selected': selectedChatUserId() === chat.user.id }"
+        class="list__item"
+        (click)="selectChat(chat.user.id)"
+    >
+        <div class="item__person">
+            <span class="person__image-wrapper"></span>
+            <span class="person__name">{{ chat.user.name }} {{ chat.user.surname }}</span>
+        </div>
+
+        <div class="item__message">
+            {{ chat.content }}
+        </div>
+    </div>
+    }
+</div>
