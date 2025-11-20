@@ -93,6 +93,7 @@
                 </div>
             </div>
 
+            @if (!isJoining()) {
             <div class="room__buttons">
                 <ui-button
                     [label]="'Cancel'"
@@ -105,9 +106,27 @@
                     [label]="'Join meeting'"
                     [size]="'small'"
                     [type]="'primary'"
+                    [isDisabled]="isClickToJoinDisabled()"
                     (click)="joinConference()"
                 ></ui-button>
             </div>
+            } @else {
+            <div class="room__loader-wrapper">
+                <div class="room__loader"></div>
+
+                @if (hasHostJoined()) {
+                <ui-title
+                    [title]="'Request to join has been sent...'"
+                    [size]="'small'"
+                ></ui-title>
+                } @else {
+                <ui-title
+                    [title]="'Waiting for the host to join...'"
+                    [size]="'small'"
+                ></ui-title>
+                }
+            </div>
+            }
         </div>
     </div>
 </div>

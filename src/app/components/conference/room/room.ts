@@ -36,6 +36,10 @@ export class Room {
     protected isRequestedEnableVideoByOwner: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isRequestedEnableVideoByOwner() && !this.isRequestedUnmuteByOwner());
     protected isRequestedUnmuteByOwner: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isRequestedUnmuteByOwner());
 
+    protected requestsToJoin: Signal<{ name: string, socketId: string }[]> = computed<{ name: string, socketId: string }[]>(() => this.conferenceWebSocket.requestsToJoin());
+    protected firstRequestToJoin: Signal<{ name: string, socketId: string }> = computed<{ name: string, socketId: string }>(() => this.requestsToJoin().length > 0 ? this.requestsToJoin()[0] : { name: "", socketId: "" });
+    protected isRequestToJoinPopupVisible: Signal<boolean> = computed<boolean>(() => this.requestsToJoin().length > 0);
+
     private popupContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("popup");
 
     protected messages: Signal<MessageType[]> = computed<MessageType[]>(() => this.conferenceWebSocket.chatMessages());
@@ -279,6 +283,18 @@ export class Room {
         this.conferenceWebSocket.isRequestedUnmuteByOwner.set(false);
     }
 
+    protected approveRequestToJoin(): void {
+        const request: { name: string, socketId: string } = this.firstRequestToJoin();
+
+        this.conferenceWebSocket.approveRequestToJoin(request.socketId);
+    }
+
+    protected declineRequestToJoin(): void {
+        const request: { name: string, socketId: string } = this.firstRequestToJoin();
+
+        this.conferenceWebSocket.declineRequestToJoin(request.socketId);
+    }
+
     @HostListener("document:click", ["$event"])
     protected onBackdropClick(event: MouseEvent): void {
         if (!this.popupContent()) {
@@ -299,6 +315,10 @@ export class Room {
         if (this.isRequestedEnableVideoByOwner()) {
             this.declineEnableVideo();
         }
+
+        if (this.isRequestToJoinPopupVisible()) {
+            this.declineRequestToJoin();
+        }
     }
 
     @HostListener("document:keydown", ["$event"])
@@ -317,6 +337,10 @@ export class Room {
 
             if (this.isRequestedEnableVideoByOwner()) {
                 this.declineEnableVideo();
+            }
+
+            if (this.isRequestToJoinPopupVisible()) {
+                this.declineRequestToJoin();
             }
         }
     }

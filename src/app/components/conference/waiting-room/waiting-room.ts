@@ -51,6 +51,10 @@ export class WaitingRoom {
     protected selectedVideoDeviceId: Signal<string> = computed<string>(() => this.conferenceWebSocket.selectedVideoDeviceId());
     protected selectedAudioDeviceId: Signal<string> = computed<string>(() => this.conferenceWebSocket.selectedAudioDeviceId());
 
+    protected isJoining: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isJoining());
+    protected hasHostJoined: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.hasHostJoined());
+    protected isClickToJoinDisabled: Signal<boolean> = computed<boolean>(() => this.isJoining() || !this.name().trim().length);
+
     public onJoinConference: OutputEmitterRef<void> = output<void>();
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);

@@ -105,4 +105,38 @@
         </div>
     </div>
 </div>
+} @if (isRequestToJoinPopupVisible()) {
+<div class="popup">
+    <div class="popup__content" #popup>
+        <ui-title
+            class="popup__text"
+            [title]="firstRequestToJoin().name + ' is requesting to join the meeting.'"
+            [size]="'small'"
+        ></ui-title>
+
+        <div class="popup__actions">
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-check'"
+                [label]="'Allow to Join'"
+                [size]="'small'"
+                [type]="'primary'"
+                [isFullWidth]="true"
+                (click)="approveRequestToJoin()"
+            >
+            </ui-button>
+
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-ban'"
+                [label]="'Decline'"
+                [size]="'small'"
+                [type]="'primary-line'"
+                [isFullWidth]="true"
+                (click)="declineRequestToJoin()"
+            >
+            </ui-button>
+        </div>
+    </div>
+</div>
 }

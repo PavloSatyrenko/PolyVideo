@@ -17,6 +17,9 @@ export class ConferenceWebsocket {
 
     public localName: WritableSignal<string> = signal<string>("");
 
+    public isJoining: WritableSignal<boolean> = signal<boolean>(false);
+    public isConnected: WritableSignal<boolean> = signal<boolean>(false);
+
     private internalLocalVideoTrigger: WritableSignal<number> = signal(0);
     private internalLocalVideoStream: WritableSignal<MediaStream> = signal(new MediaStream());
     public localVideoStream: Signal<MediaStream> = computed<MediaStream>(() => {
@@ -91,6 +94,9 @@ export class ConferenceWebsocket {
     public isRequestedUnmuteByOwner: WritableSignal<boolean> = signal<boolean>(false);
     public isRequestedEnableVideoByOwner: WritableSignal<boolean> = signal<boolean>(false);
 
+    private internalRequestToJoin: WritableSignal<{ name: string, socketId: string }[]> = signal<{ name: string, socketId: string }[]>([]);
+    public requestsToJoin: Signal<{ name: string, socketId: string }[]> = computed<{ name: string, socketId: string }[]>(() => this.internalRequestToJoin());
+
     private internalChatMessages: WritableSignal<MessageType[]> = signal<MessageType[]>([]);
     public chatMessages: Signal<MessageType[]> = computed<MessageType[]>(() => this.internalChatMessages());
 
@@ -136,7 +142,7 @@ export class ConferenceWebsocket {
     }
 
     public connect(roomCode: string): void {
-        if (!this.socket) {
+        if (!this.socket || !this.socket.connected) {
             this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
         }
 
@@ -144,7 +150,26 @@ export class ConferenceWebsocket {
 
         this.socket.emit("join", { roomCode: roomCode, name: this.localName() });
 
+        this.isConnected.set(true);
+        this.isJoining.set(false);
+
         this.meetingsService.addMeetingToRecent(roomCode);
+
+        if (this.internalMeeting()?.ownerId === this.authService.user()?.id) {
+            this.socket.emit("owner-joined");
+
+            this.socket.on("join-request", (data: { socketId: string, name: string }) => {
+                this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
+                    if (requests.find((request: { name: string, socketId: string }) => request.socketId === data.socketId)) {
+                        return requests;
+                    }
+
+                    return [...requests, { name: data.name, socketId: data.socketId }];
+                });
+
+                console.log(this.internalRequestToJoin());
+            });
+        }
 
         this.socket.on("meeting-info-updated", (data: { title: string, isWaitingRoom: boolean, isScreenSharing: boolean, isGuestAllowed: boolean }) => {
             this.internalMeeting.update((meeting: MeetingType | null) => {
@@ -370,13 +395,15 @@ export class ConferenceWebsocket {
     }
 
     public requestToJoin(roomCode: string): void {
-        if (!this.socket) {
+        if (!this.socket || !this.socket.connected) {
             this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
         }
 
         this.hasHostJoined.set(true);
 
         this.socket.emit("request-to-join", { roomCode, name: this.localName() });
+
+        this.isJoining.set(true);
 
         this.socket.on("admin-not-found", () => {
             this.hasHostJoined.set(false);
@@ -388,6 +415,9 @@ export class ConferenceWebsocket {
 
         this.socket.on("request-denied", () => {
             this.leave();
+            this.isJoining.set(false);
+
+            this.router.navigate(["/request-denied"]);
         });
     }
 
@@ -559,6 +589,22 @@ export class ConferenceWebsocket {
         this.socket?.emit("remove-user", socketId);
     }
 
+    public approveRequestToJoin(socketId: string): void {
+        this.socket?.emit("approve-request", socketId);
+
+        this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
+            return requests.filter((request: { name: string, socketId: string }) => request.socketId !== socketId);
+        });
+    }
+
+    public declineRequestToJoin(socketId: string): void {
+        this.socket?.emit("deny-request", socketId);
+
+        this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
+            return requests.filter((request: { name: string, socketId: string }) => request.socketId !== socketId);
+        });
+    }
+
     public sendMessage(content: string): void {
         const message: MessageType = {
             id: crypto.randomUUID(),
@@ -639,6 +685,11 @@ export class ConferenceWebsocket {
 
         this.socket?.emit("leave", this.conferenceCode);
         this.socket?.disconnect();
+
+        setTimeout(() => {
+            this.isConnected.set(false);
+            this.isJoining.set(false);
+        }, 0);
     }
 
     private createPeerConnection(socketId: string): RTCPeerConnection {

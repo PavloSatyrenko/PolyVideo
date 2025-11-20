@@ -16,8 +16,8 @@ export class Conference implements OnInit, OnDestroy {
 
     protected isConferenceExists: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isConferenceExists());
 
-    protected isJoining: WritableSignal<boolean> = signal<boolean>(false);
-    protected isConnected: WritableSignal<boolean> = signal<boolean>(false);
+    protected isJoining: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isJoining());
+    protected isConnected: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isConnected());
 
     private routeSubscription: any;
 
@@ -61,11 +61,9 @@ export class Conference implements OnInit, OnDestroy {
 
         if (!this.conferenceWebSocket.meeting()?.isWaitingRoom) {
             this.conferenceWebSocket.connect(this.conferenceCode());
-            this.isConnected.set(true);
         }
         else {
             this.conferenceWebSocket.requestToJoin(this.conferenceCode());
-            this.isJoining.set(true);
         }
     }
 }
