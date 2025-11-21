@@ -10,15 +10,23 @@
         playsinline
         muted
     ></video>
+    } @else {
+    <div class="participant__image-wrapper"></div>
     } @if (!participant().isLocal && participant().isAudioEnabled) {
     <audio [srcObject]="participant().audioStream" autoplay></audio>
     }
 
-    <span class="participant__name">{{ participant().name }}</span>
+    <span class="participant__name">
+        @if (participant().isAudioEnabled) {
+        <i class="fa-solid fa-microphone name__icon"></i>
+        } @else {
+        <i class="fa-solid fa-microphone-slash name__icon"></i>
+        } {{ participant().name }}
+    </span>
 
     @if (participant().isHandUp) {
-        <span class="participant__hand">
-            <i class="fa-solid fa-hand"></i>
-        </span>
+    <span class="participant__hand">
+        <i class="fa-solid fa-hand"></i>
+    </span>
     }
 </div>

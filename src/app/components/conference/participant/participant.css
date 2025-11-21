@@ -6,6 +6,8 @@
 .participant {
     position: relative;
     display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -24,15 +26,34 @@
     background-color: initial;
 }
 
+.participant__image-wrapper {
+    width: min(100%, 500px);
+    height: auto;
+    max-height: 500px;
+    aspect-ratio: 1 / 1;
+    margin: 16px;
+    background-color: var(--element-color);
+    border-radius: 50%;
+}
+
 .participant__name {
     position: absolute;
     bottom: 8px;
     left: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
     padding: 8px 16px;
     font-size: 16px;
     color: var(--primary-text-color);
     background-color: #00000090;
     border-radius: 6px;
+}
+
+.name__icon {
+    width: 16px;
+    margin-bottom: 2px;
+    font-size: 14px;
 }
 
 .participant__hand {
