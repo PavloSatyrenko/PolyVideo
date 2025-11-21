@@ -53,8 +53,10 @@ export class Conference implements OnInit, OnDestroy {
         this.routeSubscription.unsubscribe();
     }
 
-    protected joinConference(): void {
-        if (!this.conferenceWebSocket.meeting()?.isGuestAllowed && !this.authService.user()){
+    protected async joinConference(): Promise<void> {
+        await this.conferenceWebSocket.setMeetingByCode(this.conferenceCode());
+
+        if (!this.conferenceWebSocket.meeting()?.isGuestAllowed && !this.authService.user()) {
             alert("You must be logged in to join this conference.");
             return;
         }
