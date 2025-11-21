@@ -21,7 +21,7 @@ export class ParticipantsSidebar {
 
     private menuContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("menu");
 
-    protected isMeetingOwnerId: Signal<boolean> = computed<boolean>(() => (this.conferenceWebSocket.meeting()?.ownerId || "") === this.authService.user()?.id);
+    protected isMeetingOwner: Signal<boolean> = computed<boolean>(() => (this.conferenceWebSocket.meeting()?.ownerId || "") === this.authService.user()?.id);
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);

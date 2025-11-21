@@ -37,7 +37,7 @@
                     }
                 </span>
 
-                @if (participant.id !== "local" && isMeetingOwnerId()) {
+                @if (participant.id !== "local" && isMeetingOwner()) {
                 <span
                     class="item__icon item__icon_clickable"
                     (click)="openParticipantMenu(participant)"

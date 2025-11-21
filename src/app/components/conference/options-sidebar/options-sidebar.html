@@ -2,6 +2,7 @@
     <div class="sidebar__content">
         <ui-title [title]="'Meeting Options'" [size]="'medium'"></ui-title>
 
+        @if (isMeetingOwner()) {
         <div class="sidebar__item">
             <ui-input
                 [placeholder]="'Meeting Title'"
@@ -32,6 +33,38 @@
                 [(value)]="isScreenSharingAllowed"
             ></ui-checkbox>
         </div>
+        } @else {
+        <div class="sidebart__item">
+            <ui-title [title]="meetingTitle()" [size]="'small'"></ui-title>
+        </div>
+
+        <div class="sidebar__item">
+            <span class="item__text">
+                Waiting Room:
+                <span class="item__status">
+                    {{ isWaitingRoomEnabled() ? 'Enabled' : 'Disabled' }}
+                </span>
+            </span>
+        </div>
+
+        <div class="sidebar__item">
+            <span class="item__text">
+                Guest Access:
+                <span class="item__status">
+                    {{ isGuestAccessEnabled() ? 'Enabled' : 'Disabled' }}
+                </span>
+            </span>
+        </div>
+
+        <div class="sidebar__item">
+            <span class="item__text">
+                Screen Sharing:
+                <span class="item__status">
+                    {{ isScreenSharingAllowed() ? 'Allowed' : 'Not Allowed' }}
+                </span>
+            </span>
+        </div>
+        }
 
         <ui-title [title]="'Media Options'" [size]="'medium'"></ui-title>
 

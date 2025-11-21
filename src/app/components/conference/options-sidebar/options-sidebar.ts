@@ -8,6 +8,7 @@ import { MeetingType } from "@shared/types/MeetingType";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { Select } from "@shared/components/select/select";
 import { DeviceLabelPipe } from "@shared/pipes/device-label-pipe";
+import { AuthService } from "@shared/services/auth.service";
 
 @Component({
     selector: "app-conference-options-sidebar",
@@ -17,6 +18,8 @@ import { DeviceLabelPipe } from "@shared/pipes/device-label-pipe";
 })
 export class OptionsSidebar {
     public meeting: InputSignal<MeetingType | null> = input.required<MeetingType | null>();
+
+    protected isMeetingOwner: Signal<boolean> = computed<boolean>(() => (this.conferenceWebSocket.meeting()?.ownerId || "") === this.authService.user()?.id);
 
     protected meetingTitle: WritableSignal<string> = signal<string>("");
     protected isWaitingRoomEnabled: WritableSignal<boolean> = signal<boolean>(true);
@@ -38,6 +41,7 @@ export class OptionsSidebar {
 
     private meetingsService: MeetingsService = inject(MeetingsService);
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    private authService: AuthService = inject(AuthService);
 
     constructor() {
         effect(() => {
