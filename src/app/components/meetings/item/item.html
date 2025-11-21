@@ -1,6 +1,7 @@
 <div class="meeting">
     <div class="meeting__information">
-        <ui-title [title]="name()" [size]="'small'"></ui-title>
+        <ui-title class="meeting__title" [title]="name()" [size]="'small'"></ui-title>
+
         @if (lastTimeJoined()) {
         <span class="meeting__last-time-joined">
             Joined {{ computedLastTimeJoined() }}
