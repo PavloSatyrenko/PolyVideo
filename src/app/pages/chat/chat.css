@@ -3,6 +3,6 @@
     height: 100%;
 }
 
-.chats__list {
-    /* padding: 16px 12px; */
+.chats__window {
+    flex-grow: 1;
 }

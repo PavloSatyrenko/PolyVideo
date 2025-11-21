@@ -2,10 +2,11 @@ import { Component, computed, inject, signal, Signal, WritableSignal } from "@an
 import { ChatWebsocket } from "@shared/services/chat-websocket";
 import { List } from "@components/chat/list/list";
 import { ChatType } from "@shared/types/ChatType";
+import { Window } from "@components/chat/window/window";
 
 @Component({
     selector: "app-chat",
-    imports: [List],
+    imports: [List, Window],
     templateUrl: "./chat.html",
     styleUrl: "./chat.css"
 })

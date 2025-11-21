@@ -5,4 +5,10 @@
             [(selectedChatUserId)]="selectedChatUserId"
         ></app-chat-list>
     </div>
+
+    @if (selectedChatUserId()) {
+    <div class="chats__window">
+        <app-chat-window [chatUserId]="selectedChatUserId()!"></app-chat-window>
+    </div>
+    }
 </div>

@@ -1,0 +1,38 @@
+<div class="chat">
+    <div class="chat__header">
+        <div class="chat__person">
+            <span class="person__image-wrapper"></span>
+
+            <span class="person__name">{{ chatUserName() }}</span>
+        </div>
+    </div>
+
+    <div class="chat__body">
+        @for(message of chat(); track message.id) {
+        <div class="chat__message">
+            <span class="message__image-wrapper"></span>
+
+            <div class="message__content">{{ message.content }}</div>
+        </div>
+        }
+    </div>
+
+    <div class="chat__send">
+        <ui-input
+            class="send__input"
+            [placeholder]="'Type your message...'"
+            [(value)]="newMessageContent"
+            [size]="'small'"
+            [theme]="'primary'"
+            [isFullWidth]="true"
+            (keydown.enter)="sendMessage()"
+        ></ui-input>
+
+        <ui-button
+            [label]="'Send'"
+            [size]="'small'"
+            [type]="'primary'"
+            (click)="sendMessage()"
+        ></ui-button>
+    </div>
+</div>
