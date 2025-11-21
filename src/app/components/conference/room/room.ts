@@ -238,7 +238,17 @@ export class Room {
                 this.conferenceWebSocket.toggleVideo();
                 break;
             case "screen":
-                this.conferenceWebSocket.toggleScreenShare();
+                if (this.meeting()?.isScreenSharing) {
+                    this.conferenceWebSocket.toggleScreenShare();
+                }
+                else {
+                    if (this.conferenceWebSocket.isScreenSharing()) {
+                        this.conferenceWebSocket.toggleScreenShare();
+                    }
+                    else {
+                        alert("Screen sharing is permitted in this meeting.");
+                    }
+                }
                 break;
             case "participants":
                 this.isParticipantsSidebarOpened.set(!this.isParticipantsSidebarOpened());
