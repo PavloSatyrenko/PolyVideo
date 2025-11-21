@@ -167,7 +167,7 @@ export class Room {
 
             updatedParticipants.push(...screenStreams);
 
-            updatedParticipants.push({
+            updatedParticipants.unshift({
                 id: "local",
                 name: this.conferenceWebSocket.localName(),
                 isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
@@ -181,7 +181,7 @@ export class Room {
             });
 
             if (this.conferenceWebSocket.isScreenSharing()) {
-                updatedParticipants.push({
+                updatedParticipants.unshift({
                     id: "local-screen",
                     name: this.conferenceWebSocket.localName() + " screen",
                     isAudioEnabled: false,

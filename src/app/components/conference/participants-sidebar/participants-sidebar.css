@@ -44,6 +44,10 @@
     width: calc(100% - 96px - 12px);
 }
 
+.item__info_expanded {
+    width: calc(100% - 60px - 12px);
+}
+
 .item__image-wrapper {
     width: 44px;
     height: 44px;

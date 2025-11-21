@@ -4,12 +4,20 @@
     <div class="sidebar__list">
         @for(participant of visibleParticipants(); track participant.id) {
         <div class="sidebar__item">
-            <div class="item__info">
+            <div
+                class="item__info"
+                [ngClass]="{'item__info_expanded': participant.id === 'local'}"
+            >
                 <span
                     [ngClass]="{'item__image-wrapper_bordered': participant.isHandUp}"
                     class="item__image-wrapper"
                 ></span>
+
+                @if (participant.id === "local") {
+                <span class="item__name">(You) {{ participant.name }}</span>
+                } @else {
                 <span class="item__name">{{ participant.name }}</span>
+                }
             </div>
 
             <div class="item__actions">
@@ -29,6 +37,7 @@
                     }
                 </span>
 
+                @if (participant.id !== "local"){
                 <span
                     class="item__icon item__icon_clickable"
                     (click)="openParticipantMenu(participant)"
@@ -83,6 +92,7 @@
                     </div>
                     }
                 </span>
+                }
             </div>
         </div>
         }
