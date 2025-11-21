@@ -37,7 +37,7 @@
                     }
                 </span>
 
-                @if (participant.id !== "local"){
+                @if (participant.id !== "local" && isMeetingOwnerId()) {
                 <span
                     class="item__icon item__icon_clickable"
                     (click)="openParticipantMenu(participant)"
@@ -89,6 +89,16 @@
                             <i class="fa-solid fa-user-slash menu__icon"></i>
                             <span class="menu__text">Remove Participant</span>
                         </div>
+
+                        @if (participant.userId) {
+                        <div
+                            class="menu__item"
+                            (click)="giveOwnership(participant)"
+                        >
+                            <i class="fa-solid fa-crown menu__icon"></i>
+                            <span class="menu__text">Give Ownership</span>
+                        </div>
+                        }
                     </div>
                     }
                 </span>

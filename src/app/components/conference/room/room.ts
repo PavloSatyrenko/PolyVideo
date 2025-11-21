@@ -13,6 +13,7 @@ import { OptionsSidebar } from "../options-sidebar/options-sidebar";
 import { MeetingType } from "@shared/types/MeetingType";
 import { Button } from "@shared/components/button/button";
 import { Title } from "@shared/components/title/title";
+import { AuthService } from "@shared/services/auth.service";
 
 @Component({
     selector: "app-conference-room",
@@ -78,6 +79,7 @@ export class Room {
     ]);
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    private authService: AuthService = inject(AuthService);
     private router: Router = inject(Router);
 
     constructor() {
@@ -113,6 +115,7 @@ export class Room {
                 if (peer.isScreenSharing) {
                     screenStreams.push({
                         id: `${socketId}-screen`,
+                        userId: peer.userId,
                         name: `${peer.name} screen`,
                         isAudioEnabled: false,
                         isVideoEnabled: true,
@@ -152,6 +155,7 @@ export class Room {
                 else {
                     return {
                         id: socketId,
+                        userId: peer.userId,
                         name: peer.name,
                         isAudioEnabled: peer.isAudioEnabled,
                         isVideoEnabled: peer.isVideoEnabled,
@@ -169,6 +173,7 @@ export class Room {
 
             updatedParticipants.unshift({
                 id: "local",
+                userId: this.authService.user()?.id || "",
                 name: this.conferenceWebSocket.localName(),
                 isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
                 isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
@@ -183,6 +188,7 @@ export class Room {
             if (this.conferenceWebSocket.isScreenSharing()) {
                 updatedParticipants.unshift({
                     id: "local-screen",
+                    userId: this.authService.user()?.id || "",
                     name: this.conferenceWebSocket.localName() + " screen",
                     isAudioEnabled: false,
                     isVideoEnabled: true,

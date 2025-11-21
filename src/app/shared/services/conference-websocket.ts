@@ -191,14 +191,15 @@ export class ConferenceWebsocket {
             });
         });
 
-        this.socket.on("all-users", (users: { socketId: string, name: string, isHandUp: boolean }[]) => {
+        this.socket.on("all-users", (users: { socketId: string, name: string, userId: string, isHandUp: boolean }[]) => {
             this.internalRemotePeers.update((currentStreams: Record<string, RemotePeerType>) => {
                 const updatedStreams: Record<string, RemotePeerType> = { ...currentStreams };
 
-                users.forEach((user: { socketId: string, name: string, isHandUp: boolean }) => {
+                users.forEach((user: { socketId: string, name: string, userId: string, isHandUp: boolean }) => {
                     updatedStreams[user.socketId] = {
                         ...currentStreams[user.socketId],
                         name: user.name,
+                        userId: user.userId || "",
                         videoStream: currentStreams[user.socketId]?.videoStream || new MediaStream(),
                         audioStream: currentStreams[user.socketId]?.audioStream || new MediaStream(),
                         screenShareStream: currentStreams[user.socketId]?.screenShareStream || new MediaStream(),
@@ -210,7 +211,7 @@ export class ConferenceWebsocket {
             });
         });
 
-        this.socket.on("new-user", async (data: { socketId: string, name: string }) => {
+        this.socket.on("new-user", async (data: { socketId: string, name: string, userId: string }) => {
             this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
 
             this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
@@ -218,6 +219,7 @@ export class ConferenceWebsocket {
                 [data.socketId]: {
                     ...streams[data.socketId],
                     name: data.name,
+                    userId: data.userId || "",
                     videoStream: streams[data.socketId]?.videoStream || new MediaStream(),
                     audioStream: streams[data.socketId]?.audioStream || new MediaStream(),
                     screenShareStream: streams[data.socketId]?.screenShareStream || new MediaStream()
@@ -387,6 +389,16 @@ export class ConferenceWebsocket {
         this.socket.on("removed-from-meeting", () => {
             this.leave();
             this.router.navigate(["/removed-from-meeting"]);
+        });
+
+        this.socket.on("ownership-transferred", (participantId: string) => {
+            this.internalMeeting.update((meeting: MeetingType | null) => {
+                if (meeting) {
+                    return { ...meeting, ownerId: participantId };
+                }
+
+                return meeting;
+            });
         });
 
         this.socket.on("chat-message", (message: MessageType) => {
@@ -599,6 +611,10 @@ export class ConferenceWebsocket {
 
     public kickUser(socketId: string): void {
         this.socket?.emit("remove-user", socketId);
+    }
+
+    public transferOwnership(participantId: string): void {
+        this.socket?.emit("transfer-ownership", participantId);
     }
 
     public approveRequestToJoin(socketId: string): void {

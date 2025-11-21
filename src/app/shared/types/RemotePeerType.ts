@@ -1,4 +1,5 @@
 export type RemotePeerType = {
+    userId: string,
     name: string,
     videoStream: MediaStream,
     audioStream: MediaStream,

@@ -1,6 +1,7 @@
 import { NgClass } from "@angular/common";
 import { Component, computed, ElementRef, HostListener, inject, input, InputSignal, signal, Signal, viewChild, WritableSignal } from "@angular/core";
 import { Title } from "@shared/components/title/title";
+import { AuthService } from "@shared/services/auth.service";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { ParticipantType } from "@shared/types/ParticipantType";
 
@@ -20,7 +21,10 @@ export class ParticipantsSidebar {
 
     private menuContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("menu");
 
+    protected isMeetingOwnerId: Signal<boolean> = computed<boolean>(() => (this.conferenceWebSocket.meeting()?.ownerId || "") === this.authService.user()?.id);
+
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    private authService: AuthService = inject(AuthService);
 
     protected isParticipantMenuOpened(participant: ParticipantType): boolean {
         return this.openedMenuParticipantId() === participant.id;
@@ -56,6 +60,11 @@ export class ParticipantsSidebar {
 
     protected kickParticipant(participant: ParticipantType): void {
         this.conferenceWebSocket.kickUser(participant.id);
+        this.closeParticipantMenu();
+    }
+
+    protected giveOwnership(participant: ParticipantType): void {
+        this.conferenceWebSocket.transferOwnership(participant.userId);
         this.closeParticipantMenu();
     }
 

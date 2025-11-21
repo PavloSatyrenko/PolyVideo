@@ -1,5 +1,6 @@
 export type ParticipantType = {
     id: string,
+    userId: string,
     name: string,
     isAudioEnabled: boolean,
     isVideoEnabled: boolean,
