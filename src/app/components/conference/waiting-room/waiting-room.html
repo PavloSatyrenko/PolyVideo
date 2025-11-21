@@ -93,24 +93,7 @@
                 </div>
             </div>
 
-            @if (!isJoining()) {
-            <div class="room__buttons">
-                <ui-button
-                    [label]="'Cancel'"
-                    [size]="'small'"
-                    [type]="'primary-line'"
-                    (click)="cancelJoining()"
-                ></ui-button>
-
-                <ui-button
-                    [label]="'Join meeting'"
-                    [size]="'small'"
-                    [type]="'primary'"
-                    [isDisabled]="isClickToJoinDisabled()"
-                    (click)="joinConference()"
-                ></ui-button>
-            </div>
-            } @else {
+            @if (isJoining()) {
             <div class="room__loader-wrapper">
                 <div class="room__loader"></div>
 
@@ -127,6 +110,23 @@
                 }
             </div>
             }
+
+            <div class="room__buttons">
+                <ui-button
+                    [label]="'Cancel'"
+                    [size]="'small'"
+                    [type]="'primary-line'"
+                    (click)="cancelJoining()"
+                ></ui-button>
+
+                <ui-button
+                    [label]="'Join meeting'"
+                    [size]="'small'"
+                    [type]="'primary'"
+                    [isDisabled]="isClickToJoinDisabled()"
+                    (click)="joinConference()"
+                ></ui-button>
+            </div>
         </div>
     </div>
 </div>

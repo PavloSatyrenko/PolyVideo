@@ -167,6 +167,12 @@ export class ConferenceWebsocket {
                     return [...requests, { name: data.name, socketId: data.socketId }];
                 });
             });
+
+            this.socket.on("request-cancelled", (socketId: string) => {
+                this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
+                    return requests.filter((request: { name: string, socketId: string }) => request.socketId !== socketId);
+                });
+            });
         }
 
         this.socket.on("meeting-info-updated", (data: { title: string, isWaitingRoom: boolean, isScreenSharing: boolean, isGuestAllowed: boolean }) => {
