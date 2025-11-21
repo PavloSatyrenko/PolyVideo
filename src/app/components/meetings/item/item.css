@@ -14,7 +14,7 @@
     gap: 8px;
 }
 
-::ng-deep .meeting__title .title {
+:host ::ng-deep .meeting__title .title {
     display: -webkit-box;
     max-height: 72px;
     overflow: hidden;
