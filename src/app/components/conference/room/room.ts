@@ -246,7 +246,7 @@ export class Room {
                         this.conferenceWebSocket.toggleScreenShare();
                     }
                     else {
-                        alert("Screen sharing is permitted in this meeting.");
+                        alert("Screen sharing is not permitted in this meeting.");
                     }
                 }
                 break;
