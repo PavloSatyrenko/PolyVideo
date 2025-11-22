@@ -1,13 +1,15 @@
+import { NgClass } from "@angular/common";
 import { Component, computed, effect, ElementRef, inject, input, InputSignal, signal, Signal, viewChild, WritableSignal } from "@angular/core";
 import { Button } from "@shared/components/button/button";
 import { Input } from "@shared/components/input/input";
+import { AuthService } from "@shared/services/auth.service";
 import { ChatWebsocket } from "@shared/services/chat-websocket";
 import { ChatMessageType } from "@shared/types/ChatMessageType";
 import { ChatType } from "@shared/types/ChatType";
 
 @Component({
     selector: "app-chat-window",
-    imports: [Input, Button],
+    imports: [Input, Button, NgClass],
     templateUrl: "./window.html",
     styleUrl: "./window.css",
 })
@@ -28,6 +30,7 @@ export class Window {
     protected messagesContainer: Signal<ElementRef<HTMLDivElement>> = viewChild.required<ElementRef<HTMLDivElement>>("messagesContainer");
 
     private chatWebSocket: ChatWebsocket = inject(ChatWebsocket);
+    private authService: AuthService = inject(AuthService);
 
     constructor() {
         effect(async () => {
@@ -42,6 +45,10 @@ export class Window {
                 this.messagesContainer().nativeElement.scrollTop = this.messagesContainer().nativeElement.scrollHeight;
             }, 0);
         })
+    }
+
+    protected isOwnMessage(message: ChatMessageType): boolean {
+        return message.senderId === this.authService.user()?.id;
     }
 
     protected sendMessage(): void {

@@ -89,6 +89,10 @@
     border-radius: 8px;
 }
 
+.message__content_own {
+    background-color: var(--secondary-color);
+}
+
 .chat__send {
     display: flex;
     flex-shrink: 0;

@@ -13,7 +13,12 @@
             <div class="chat__message">
                 <span class="message__image-wrapper"></span>
 
-                <div class="message__content">{{ message.content }}</div>
+                <div
+                    class="message__content"
+                    [ngClass]="{ 'message__content_own': isOwnMessage(message) }"
+                >
+                    {{ message.content }}
+                </div>
             </div>
             }
         </div>
