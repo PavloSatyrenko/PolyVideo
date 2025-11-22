@@ -15,11 +15,11 @@ export class ChatsService {
         return await firstValueFrom(this.httpClient.get<ChatType[]>(environment.serverURL + "/chats"));
     }
 
-    public async getMessages(chatUserId: string, lastMessageId: string | null): Promise<ChatMessageType[]> {
+    public async getMessages(chatUserId: string, beforeMessageId?: string): Promise<ChatMessageType[]> {
         const params: Record<string, string> = {};
 
-        if (lastMessageId) {
-            params["after"] = lastMessageId;
+        if (beforeMessageId) {
+            params["before"] = beforeMessageId;
         }
 
         return await firstValueFrom(this.httpClient.get<ChatMessageType[]>(environment.serverURL + "/chats/" + chatUserId, {

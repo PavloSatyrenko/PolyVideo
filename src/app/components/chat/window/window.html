@@ -8,13 +8,15 @@
     </div>
 
     <div class="chat__body">
-        @for(message of chat(); track message.id) {
-        <div class="chat__message">
-            <span class="message__image-wrapper"></span>
+        <div #messagesContainer class="body__messages">
+            @for(message of chat(); track message.id) {
+            <div class="chat__message">
+                <span class="message__image-wrapper"></span>
 
-            <div class="message__content">{{ message.content }}</div>
+                <div class="message__content">{{ message.content }}</div>
+            </div>
+            }
         </div>
-        }
     </div>
 
     <div class="chat__send">

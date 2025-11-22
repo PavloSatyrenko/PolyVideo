@@ -40,11 +40,41 @@ export class ChatWebsocket {
             .then((chats: ChatType[]) => {
                 this.internalChats.set(chats);
             });
+
+        this.socket.on("message-sent", async (data: { message: ChatMessageType, userId: string }) => {
+            const indexedDB: IDBPDatabase<ChatDB> = await this.indexedDB;
+
+            const oldMessages: ChatMessageType[] = this.chatMessages()[data.userId] ?? [];
+
+            this.internalChatMessages.update((messages: Record<string, ChatMessageType[]>) => ({
+                ...messages,
+                [data.userId]: [...oldMessages, data.message],
+            }));
+
+            const last20Messages: ChatMessageType[] = [...oldMessages, data.message].slice(-20);
+
+            await indexedDB.put("messages", last20Messages, data.userId);
+        });
+
+        this.socket.on("chat-message", async (data: { message: ChatMessageType, userId: string }) => {
+            const indexedDB: IDBPDatabase<ChatDB> = await this.indexedDB;
+
+            const oldMessages: ChatMessageType[] = this.chatMessages()[data.userId] ?? [];
+
+            this.internalChatMessages.update((messages: Record<string, ChatMessageType[]>) => ({
+                ...messages,
+                [data.userId]: [...oldMessages, data.message],
+            }));
+
+            const last20Messages: ChatMessageType[] = [...oldMessages, data.message].slice(-20);
+
+            await indexedDB.put("messages", last20Messages, data.userId);
+        });
     }
 
     public async getMessagesForChat(chatUserId: string): Promise<void> {
         const indexedDB: IDBPDatabase<ChatDB> = await this.indexedDB;
-        
+
         const storedMessages: ChatMessageType[] = (await indexedDB.get("messages", chatUserId)) ?? [];
 
         this.internalChatMessages.update((messages: Record<string, ChatMessageType[]>) => ({
@@ -52,22 +82,20 @@ export class ChatWebsocket {
             [chatUserId]: storedMessages,
         }));
 
-        const lastMessageId: string | null = storedMessages.length > 0 ? storedMessages[storedMessages.length - 1].id : null;
-
-        await this.chatsService.getMessages(chatUserId, lastMessageId)
+        await this.chatsService.getMessages(chatUserId)
             .then(async (newMessages: ChatMessageType[]) => {
-                if (newMessages.length === 0) {
-                    return;
-                }
-
                 this.internalChatMessages.update((messages: Record<string, ChatMessageType[]>) => ({
                     ...messages,
-                    [chatUserId]: [...(messages[chatUserId] || []), ...newMessages],
+                    [chatUserId]: newMessages,
                 }));
 
-                const last20Messages: ChatMessageType[] = [...storedMessages, ...newMessages].slice(-20);
+                const last20Messages: ChatMessageType[] = newMessages.slice(-20);
 
                 await indexedDB.put("messages", last20Messages, chatUserId);
             });
+    }
+
+    public sendMessage(chatUserId: string, content: string): void {
+        this.socket.emit("chat-message", { userId: chatUserId, content });
     }
 }
