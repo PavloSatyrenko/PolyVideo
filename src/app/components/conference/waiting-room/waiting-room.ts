@@ -105,7 +105,7 @@ export class WaitingRoom {
 
     protected cancelJoining(): void {
         this.conferenceWebSocket.closeConnection();
-        this.router.navigate(["/workspace", "meetings"]);
+        this.router.navigate(["/"]);
     }
 
     protected joinConference(): void {
