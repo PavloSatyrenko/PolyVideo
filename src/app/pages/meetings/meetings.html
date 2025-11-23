@@ -17,6 +17,7 @@
             [size]="'large'"
             [theme]="'primary'"
             [(value)]="meetingCodeValue"
+            (keyup.enter)="joinMeeting()"
         ></ui-input>
 
         <ui-button

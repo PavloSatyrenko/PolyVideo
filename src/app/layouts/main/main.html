@@ -1,1 +1,76 @@
-<p>main works!</p>
+<div class="layout">
+    <div class="layout__header">
+        <div class="header__container container">
+            <img src="" alt="PolyVideo Logo" class="header__logo" />
+
+            @if (isUserAuthorized()) {
+            <div class="layout__user"></div>
+            } @else {
+            <div class="layout__buttons">
+                <ui-button
+                    [label]="'Log in'"
+                    [size]="'small'"
+                    [type]="'primary-line'"
+                    [routerLink]="['/auth', 'login']"
+                ></ui-button>
+
+                <ui-button
+                    [label]="'Sign up'"
+                    [size]="'small'"
+                    [type]="'primary'"
+                    [routerLink]="['/auth', 'signup']"
+                ></ui-button>
+            </div>
+            }
+        </div>
+    </div>
+
+    <div class="layout__content">
+        <div class="content__container container">
+            <div class="content__info">
+                <div class="info__main">
+                    <ui-title
+                        class="main__title"
+                        [title]="'Platform for organizing video conferences'"
+                        [size]="'large'"
+                    ></ui-title>
+
+                    <ui-button
+                        [label]="'Try it now'"
+                        [icon]="'fa-solid fa-circle-play'"
+                        [size]="'large'"
+                        [type]="'primary'"
+                        [routerLink]="['/auth', 'signup']"
+                    ></ui-button>
+                </div>
+
+                <div class="info__join">
+                    <ui-title
+                        [title]="'Join a conference as a guest.'"
+                        [size]="'small'"
+                    ></ui-title>
+
+                    <div class="join__options">
+                        <ui-input
+                            [placeholder]="'Enter conference code'"
+                            [(value)]="meetingCodeValue"
+                            [size]="'large'"
+                            [theme]="'primary'"
+                            (keyup.enter)="joinConference()"
+                        ></ui-input>
+
+                        <ui-button
+                            [label]="'Join'"
+                            [icon]="'fa-solid fa-right-to-bracket'"
+                            [size]="'large'"
+                            [type]="'primary'"
+                            (click)="joinConference()"
+                        ></ui-button>
+                    </div>
+                </div>
+            </div>
+
+            <img src="" alt="PolyVideo Image" class="content__image" />
+        </div>
+    </div>
+</div>
