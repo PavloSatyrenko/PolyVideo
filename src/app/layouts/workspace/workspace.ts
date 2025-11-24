@@ -3,10 +3,11 @@ import { RouterOutlet } from "@angular/router";
 import { Sidebar } from "@components/workspace/sidebar/sidebar";
 import { Topbar } from "@components/workspace/topbar/topbar";
 import { ChatWebsocket } from "@shared/services/chat-websocket";
+import { Notification } from "@shared/components/notification/notification";
 
 @Component({
     selector: "app-layout-workspace",
-    imports: [RouterOutlet, Topbar, Sidebar],
+    imports: [RouterOutlet, Topbar, Sidebar, Notification],
     templateUrl: "./workspace.html",
     styleUrl: "./workspace.css"
 })

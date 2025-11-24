@@ -4,10 +4,11 @@ import { AuthService } from "@shared/services/auth.service";
 import { Button } from "@shared/components/button/button";
 import { Title } from "@shared/components/title/title";
 import { Input } from "@shared/components/input/input";
+import { Notification } from "@shared/components/notification/notification";
 
 @Component({
     selector: "app-layout-main",
-    imports: [Button, RouterLinkWithHref, Title, Input],
+    imports: [Button, RouterLinkWithHref, Title, Input, Notification],
     templateUrl: "./main.html",
     styleUrl: "./main.css",
 })

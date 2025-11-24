@@ -7,6 +7,7 @@ import { MeetingType } from "@shared/types/MeetingType";
 import { MessageType } from "@shared/types/MessageType";
 import { Router } from "@angular/router";
 import { AuthService } from "./auth.service";
+import { NotificationService } from "./notification.service";
 
 @Injectable({
     providedIn: "root"
@@ -103,6 +104,7 @@ export class ConferenceWebsocket {
     private meetingsService: MeetingsService = inject(MeetingsService);
     private authService: AuthService = inject(AuthService);
     private router: Router = inject(Router);
+    private notificationService: NotificationService = inject(NotificationService);
 
     public async setMeetingByCode(meetingCode: string): Promise<void> {
         await this.meetingsService.getMeetingByCode(meetingCode)
@@ -388,7 +390,8 @@ export class ConferenceWebsocket {
 
         this.socket.on("removed-from-meeting", () => {
             this.leave();
-            this.router.navigate(["/removed-from-meeting"]);
+            this.router.navigate(["/"]);
+            this.notificationService.showNotification("Removed from Meeting", "You have been removed from the meeting by the owner.", "info", 0);
         });
 
         this.socket.on("ownership-transferred", (participantId: string) => {
@@ -441,7 +444,8 @@ export class ConferenceWebsocket {
             this.leave();
             this.isJoining.set(false);
 
-            this.router.navigate(["/request-denied"]);
+            this.router.navigate(["/"]);
+            this.notificationService.showNotification("Request Denied", "Your request to join the meeting was denied by the owner.", "info", 0);
         });
     }
 

@@ -1,0 +1,26 @@
+<div
+    class="notification"
+    [ngClass]="{
+        'notification_type_error': type() === 'error',
+        'notification_type_info': type() === 'info',
+        'notification_visible': isVisible()
+    }"
+>
+    <span class="notification__close" (click)="hideNotification()">
+        <i class="fa-solid fa-xmark"></i>
+    </span>
+
+    <span class="notification__icon">
+        @if (type() === "error") {
+        <i class="fa-solid fa-circle-xmark"></i>
+        } @else if (type() === "info") {
+        <i class="fa-solid fa-circle-info"></i>
+        }
+    </span>
+
+    <div class="notification__content">
+        <div class="notification__header">{{ header() }}</div>
+
+        <div class="notification__message">{{ message() }}</div>
+    </div>
+</div>
