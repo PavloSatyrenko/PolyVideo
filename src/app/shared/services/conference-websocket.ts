@@ -70,8 +70,9 @@ export class ConferenceWebsocket {
     private internalRemotePeers: WritableSignal<Record<string, RemotePeerType>> = signal<Record<string, RemotePeerType>>({});
     public remotePeers: Signal<Record<string, RemotePeerType>> = computed<Record<string, RemotePeerType>>(() => this.internalRemotePeers());
 
-    private peerConnectionStatus: Record<string, boolean> = {};
-    private peerConnectionNegotiation: Record<string, boolean> = {};
+    private peerConnectionMakingOffer: Record<string, boolean> = {};
+    private peerConnectionIgnoreOffer: Record<string, boolean> = {};
+    private peerConnectionIsPolite: Record<string, boolean> = {};
 
     private conferenceCode: string = "";
 
@@ -228,7 +229,6 @@ export class ConferenceWebsocket {
                 }
             }));
 
-            this.peerConnectionNegotiation[data.socketId] = true;
 
             try {
                 const offer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createOffer();
@@ -237,7 +237,6 @@ export class ConferenceWebsocket {
             }
             catch (error) {
                 console.error("Error during offer handling", error);
-                this.peerConnectionNegotiation[data.socketId] = false;
             }
         });
 
@@ -246,32 +245,45 @@ export class ConferenceWebsocket {
                 this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
             }
 
-            this.peerConnectionNegotiation[data.socketId] = true;
+            const offerCollision: boolean = this.peerConnectionMakingOffer[data.socketId] || this.peerConnections[data.socketId].signalingState !== "stable";
+
+            if (offerCollision && !this.peerConnectionIsPolite[data.socketId]) {
+                this.peerConnectionIgnoreOffer[data.socketId] = true;
+                return;
+            }
+
+            this.peerConnectionIgnoreOffer[data.socketId] = false;
 
             try {
-                await this.peerConnections[data.socketId].setRemoteDescription(new RTCSessionDescription(data.offer));
+                if (offerCollision && this.peerConnectionIsPolite[data.socketId]) {
+                    await Promise.all([
+                        this.peerConnections[data.socketId].setLocalDescription({ type: "rollback" }),
+                        this.peerConnections[data.socketId].setRemoteDescription(data.offer)
+                    ]);
+                }
+                else {
+                    await this.peerConnections[data.socketId].setRemoteDescription(data.offer);
+                }
+
                 const answer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createAnswer();
                 await this.peerConnections[data.socketId].setLocalDescription(answer);
-
-                this.peerConnectionNegotiation[data.socketId] = false;
-
                 this.socket.emit("answer", { socketId: data.socketId, answer: answer });
             }
             catch (error) {
                 console.error("Error during offer handling", error);
-                this.peerConnectionNegotiation[data.socketId] = false;
             }
         });
 
         this.socket.on("answer", async (data: { socketId: string, answer: RTCSessionDescriptionInit }) => {
             try {
-                await this.peerConnections[data.socketId].setRemoteDescription(new RTCSessionDescription(data.answer));
+                if (this.peerConnectionIgnoreOffer[data.socketId]) {
+                    return;
+                }
+
+                await this.peerConnections[data.socketId].setRemoteDescription(data.answer);
             }
             catch (error) {
                 console.error("Error during answer handling", error);
-            }
-            finally {
-                this.peerConnectionNegotiation[data.socketId] = false;
             }
         });
 
@@ -281,7 +293,7 @@ export class ConferenceWebsocket {
             }
 
             try {
-                await this.peerConnections[data.socketId].addIceCandidate(new RTCIceCandidate(data.candidate));
+                await this.peerConnections[data.socketId].addIceCandidate(data.candidate);
             }
             catch (error) {
                 console.error("Error adding received ice candidate", error);
@@ -679,10 +691,10 @@ export class ConferenceWebsocket {
     private async stopScreenShare(): Promise<void> {
         const tracks: MediaStreamTrack[] = this.internalLocalScreenShareStream().getTracks();
 
-        tracks.forEach((track: MediaStreamTrack) => track.stop());
-
         for (const peerConnection of Object.values(this.peerConnections)) {
             for (const track of tracks) {
+                track.stop();
+
                 const sender: RTCRtpSender | undefined = peerConnection.getSenders().find((sender: RTCRtpSender) => sender.track === track);
 
                 if (sender) {
@@ -728,6 +740,8 @@ export class ConferenceWebsocket {
         const peerConnection: RTCPeerConnection = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
+
+        this.peerConnectionIsPolite[socketId] = this.socket.id! < socketId;
 
         this.internalLocalAudioStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
             peerConnection.addTrack(track);
@@ -778,9 +792,7 @@ export class ConferenceWebsocket {
         };
 
         peerConnection.onconnectionstatechange = () => {
-            if (peerConnection.connectionState === "connected" && !this.peerConnectionStatus[socketId]) {
-                this.peerConnectionStatus[socketId] = true;
-
+            if (peerConnection.connectionState === "connected") {
                 peerConnection.getSenders().forEach((sender: RTCRtpSender) => {
                     if (sender.track?.kind === "audio") {
                         sender.track.enabled = this.isAudioEnabled();
@@ -799,19 +811,18 @@ export class ConferenceWebsocket {
 
         peerConnection.onnegotiationneeded = async () => {
             try {
-                if (this.peerConnectionNegotiation[socketId] || peerConnection.signalingState !== "stable") {
-                    return;
-                }
-
-                this.peerConnectionNegotiation[socketId] = true;
+                this.peerConnectionMakingOffer[socketId] = true;
 
                 const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
-                this.socket.emit("offer", { socketId, offer });
+
+                this.socket.emit("offer", { socketId, offer: peerConnection.localDescription });
             }
             catch (error) {
                 console.error("Negotiation failed", error);
-                this.peerConnectionNegotiation[socketId] = false;
+            }
+            finally {
+                this.peerConnectionMakingOffer[socketId] = false;
             }
         };
 
@@ -846,12 +857,16 @@ export class ConferenceWebsocket {
             delete this.peerConnections[socketId];
         }
 
-        if (this.peerConnectionStatus[socketId]) {
-            delete this.peerConnectionStatus[socketId];
+        if (this.peerConnectionMakingOffer[socketId]) {
+            delete this.peerConnectionMakingOffer[socketId];
         }
 
-        if (this.peerConnectionNegotiation[socketId]) {
-            delete this.peerConnectionNegotiation[socketId];
+        if (this.peerConnectionIgnoreOffer[socketId]) {
+            delete this.peerConnectionIgnoreOffer[socketId];
+        }
+
+        if (this.peerConnectionIsPolite[socketId]) {
+            delete this.peerConnectionIsPolite[socketId];
         }
     }
 }
