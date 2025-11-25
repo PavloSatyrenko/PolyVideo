@@ -4,6 +4,14 @@
             [chats]="chats()"
             [(selectedChatUserId)]="selectedChatUserId"
         ></app-chat-list>
+
+        <ui-button
+            class="chats__button"
+            [icon]="'fa-solid fa-plus'"
+            [size]="'large'"
+            [type]="'primary'"
+            (click)="openUsersPopup()"
+        ></ui-button>
     </div>
 
     @if (selectedChatUserId()) {
@@ -12,3 +20,61 @@
     </div>
     }
 </div>
+
+@if (isUsersPopupOpen()) {
+<div class="popup">
+    <div class="popup__content" #popup>
+        <ui-title
+            class="popup__text"
+            [title]="'Choose user to chat with:'"
+            [size]="'small'"
+        ></ui-title>
+
+        <div class="popup__body">
+            <ui-input
+                class="body__search"
+                [placeholder]="'Search user...'"
+                [(value)]="searchUserQuery"
+                [size]="'small'"
+                [theme]="'primary'"
+                [isFullWidth]="true"
+            ></ui-input>
+
+            <div class="body__list">
+                @for (user of users(); track user.id) {
+                <div
+                    class="list__item"
+                    [ngClass]="{ 'list__item_selected': isUserSelected(user.id) }"
+                    (click)="selectUser(user.id)"
+                >
+                    <span class="item__image-wrapper"></span>
+
+                    <span class="info__name">
+                        {{ user.name }} {{ user.surname }}
+                    </span>
+                </div>
+                }
+            </div>
+
+            <div class="body__actions">
+                <ui-button
+                    [label]="'Cancel'"
+                    [icon]="'fa-solid fa-xmark'"
+                    [size]="'small'"
+                    [type]="'primary-line'"
+                    (click)="closeUsersPopup()"
+                ></ui-button>
+
+                <ui-button
+                    [label]="'Start Chat'"
+                    [icon]="'fa-solid fa-comment'"
+                    [size]="'small'"
+                    [type]="'primary'"
+                    [isDisabled]="!selectedUserId()"
+                    (click)="startChatWithSelectedUser()"
+                ></ui-button>
+            </div>
+        </div>
+    </div>
+</div>
+}

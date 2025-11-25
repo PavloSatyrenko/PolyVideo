@@ -5,6 +5,7 @@ import { ChatsService } from "./chats.service";
 import { ChatType } from "@shared/types/ChatType";
 import { ChatMessageType } from "@shared/types/ChatMessageType";
 import { openDB, DBSchema, IDBPDatabase } from "idb";
+import { UserType } from "@shared/types/UserType";
 
 interface ChatDB extends DBSchema {
     chats: {
@@ -62,7 +63,7 @@ export class ChatWebsocket {
 
         const storedChats: ChatType[] = (await indexedDB.getAll("chats")) ?? [];
 
-        storedChats.sort((a: ChatType, b: ChatType) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
+        storedChats.sort((a: ChatType, b: ChatType) => new Date(b.sentAt!).getTime() - new Date(a.sentAt!).getTime());
 
         this.internalChats.set(storedChats);
 
@@ -74,6 +75,18 @@ export class ChatWebsocket {
                     await indexedDB.put("chats", chat, chat.user.id);
                 }
             });
+    }
+
+    public startChatWithUser(user: UserType): void {
+        if (this.chats().find((chat: ChatType) => chat.user.id === user.id)) {
+            return;
+        }
+
+        const newChat: ChatType = {
+            user: user,
+        };
+
+        this.internalChats.update((chats: ChatType[]) => [newChat, ...chats]);
     }
 
     public async getMessagesForChat(chatUserId: string): Promise<void> {
