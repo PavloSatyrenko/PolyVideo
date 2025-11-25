@@ -15,6 +15,8 @@ import { NotificationService } from "./notification.service";
 export class ConferenceWebsocket {
     private socket!: Socket;
     private peerConnections: Record<string, RTCPeerConnection> = {};
+    private screenSenderPeerConnections: Record<string, RTCPeerConnection> = {};
+    private screenReceiverPeerConnections: Record<string, RTCPeerConnection> = {};
 
     public localName: WritableSignal<string> = signal<string>("");
 
@@ -71,7 +73,9 @@ export class ConferenceWebsocket {
     public remotePeers: Signal<Record<string, RemotePeerType>> = computed<Record<string, RemotePeerType>>(() => this.internalRemotePeers());
 
     private peerConnectionMakingOffer: Record<string, boolean> = {};
+    private screenPeerConnectionMakingOffer: Record<string, boolean> = {};
     private peerConnectionIgnoreOffer: Record<string, boolean> = {};
+    private screenPeerConnectionIgnoreOffer: Record<string, boolean> = {};
     private peerConnectionIsPolite: Record<string, boolean> = {};
 
     private conferenceCode: string = "";
@@ -215,7 +219,7 @@ export class ConferenceWebsocket {
         });
 
         this.socket.on("new-user", async (data: { socketId: string, name: string, userId: string }) => {
-            this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
+            this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId, false);
 
             this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => ({
                 ...streams,
@@ -229,71 +233,106 @@ export class ConferenceWebsocket {
                 }
             }));
 
-
             try {
                 const offer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createOffer();
                 await this.peerConnections[data.socketId].setLocalDescription(offer);
-                this.socket.emit("offer", { socketId: data.socketId, offer: offer });
+                this.socket.emit("offer", { socketId: data.socketId, offer: offer, isScreenShare: false });
             }
             catch (error) {
                 console.error("Error during offer handling", error);
             }
+
+            if (this.isScreenSharing()) {
+                this.screenSenderPeerConnections[data.socketId] = this.createPeerConnection(data.socketId, true);
+
+                try {
+                    const offer: RTCSessionDescriptionInit = await this.screenSenderPeerConnections[data.socketId].createOffer();
+                    await this.screenSenderPeerConnections[data.socketId].setLocalDescription(offer);
+                    this.socket.emit("offer", { socketId: data.socketId, offer: offer, isScreenShare: true });
+                }
+                catch (error) {
+                    console.error("Error during screen share offer handling", error);
+                }
+            }
         });
 
-        this.socket.on("offer", async (data: { socketId: string, offer: RTCSessionDescriptionInit }) => {
-            if (!this.peerConnections[data.socketId]) {
-                this.peerConnections[data.socketId] = this.createPeerConnection(data.socketId);
+        this.socket.on("offer", async (data: { socketId: string, offer: RTCSessionDescriptionInit, isScreenShare: boolean }) => {
+            const peerConnections: Record<string, RTCPeerConnection> = data.isScreenShare ? this.screenReceiverPeerConnections : this.peerConnections;
+
+            if (!peerConnections[data.socketId]) {
+                peerConnections[data.socketId] = this.createPeerConnection(data.socketId, data.isScreenShare);
             }
 
-            const offerCollision: boolean = this.peerConnectionMakingOffer[data.socketId] || this.peerConnections[data.socketId].signalingState !== "stable";
+            const makingOfferRecord: Record<string, boolean> = data.isScreenShare ? this.screenPeerConnectionMakingOffer : this.peerConnectionMakingOffer;
+
+            const offerCollision: boolean = makingOfferRecord[data.socketId] || peerConnections[data.socketId].signalingState !== "stable";
 
             if (offerCollision && !this.peerConnectionIsPolite[data.socketId]) {
-                this.peerConnectionIgnoreOffer[data.socketId] = true;
+                if (data.isScreenShare) {
+                    this.screenPeerConnectionIgnoreOffer[data.socketId] = true;
+                }
+                else {
+                    this.peerConnectionIgnoreOffer[data.socketId] = true;
+                }
+
                 return;
             }
 
-            this.peerConnectionIgnoreOffer[data.socketId] = false;
+            if (data.isScreenShare) {
+                this.screenPeerConnectionIgnoreOffer[data.socketId] = false;
+            }
+            else {
+                this.peerConnectionIgnoreOffer[data.socketId] = false;
+            }
 
             try {
                 if (offerCollision && this.peerConnectionIsPolite[data.socketId]) {
                     await Promise.all([
-                        this.peerConnections[data.socketId].setLocalDescription({ type: "rollback" }),
-                        this.peerConnections[data.socketId].setRemoteDescription(data.offer)
+                        peerConnections[data.socketId].setLocalDescription({ type: "rollback" }),
+                        peerConnections[data.socketId].setRemoteDescription(data.offer)
                     ]);
                 }
                 else {
-                    await this.peerConnections[data.socketId].setRemoteDescription(data.offer);
+                    await peerConnections[data.socketId].setRemoteDescription(data.offer);
                 }
 
-                const answer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createAnswer();
-                await this.peerConnections[data.socketId].setLocalDescription(answer);
-                this.socket.emit("answer", { socketId: data.socketId, answer: answer });
+                const answer: RTCSessionDescriptionInit = await peerConnections[data.socketId].createAnswer();
+                await peerConnections[data.socketId].setLocalDescription(answer);
+                this.socket.emit("answer", { socketId: data.socketId, answer: answer, isScreenShare: data.isScreenShare });
             }
             catch (error) {
                 console.error("Error during offer handling", error);
             }
         });
 
-        this.socket.on("answer", async (data: { socketId: string, answer: RTCSessionDescriptionInit }) => {
+        this.socket.on("answer", async (data: { socketId: string, answer: RTCSessionDescriptionInit, isScreenShare: boolean }) => {
+            const peerConnections: Record<string, RTCPeerConnection> = data.isScreenShare ? this.screenSenderPeerConnections : this.peerConnections;
+
+            const ignoreOfferRecord: Record<string, boolean> = data.isScreenShare ? this.screenPeerConnectionIgnoreOffer : this.peerConnectionIgnoreOffer;
+
             try {
-                if (this.peerConnectionIgnoreOffer[data.socketId]) {
+                if (ignoreOfferRecord[data.socketId]) {
                     return;
                 }
 
-                await this.peerConnections[data.socketId].setRemoteDescription(data.answer);
+                if (peerConnections[data.socketId] && data.answer) {
+                    await peerConnections[data.socketId].setRemoteDescription(data.answer);
+                }
             }
             catch (error) {
                 console.error("Error during answer handling", error);
             }
         });
 
-        this.socket.on("iceCandidate", async (data: { socketId: string, candidate: RTCIceCandidate }) => {
-            if (!this.peerConnections[data.socketId]) {
+        this.socket.on("iceCandidate", async (data: { socketId: string, candidate: RTCIceCandidate, isScreenShare: boolean }) => {
+            const peerConnections: Record<string, RTCPeerConnection> = data.isScreenShare ? this.screenReceiverPeerConnections : this.peerConnections;
+
+            if (!peerConnections[data.socketId] || !data.candidate) {
                 return;
             }
 
             try {
-                await this.peerConnections[data.socketId].addIceCandidate(data.candidate);
+                await peerConnections[data.socketId].addIceCandidate(data.candidate);
             }
             catch (error) {
                 console.error("Error adding received ice candidate", error);
@@ -358,6 +397,22 @@ export class ConferenceWebsocket {
                     isScreenSharing: false
                 }
             }));
+
+            if (this.screenReceiverPeerConnections[socketId]) {
+                this.screenReceiverPeerConnections[socketId].close();
+                delete this.screenReceiverPeerConnections[socketId];
+
+                delete this.screenPeerConnectionMakingOffer[socketId];
+                delete this.screenPeerConnectionIgnoreOffer[socketId];
+
+                this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => {
+                    if (streams[socketId]) {
+                        streams[socketId].screenShareStream = new MediaStream();
+                    }
+
+                    return { ...streams };
+                });
+            }
         });
 
         this.socket.on("hand-up", (socketId: string) => {
@@ -484,39 +539,37 @@ export class ConferenceWebsocket {
             this.internalLocalAudioStream.set(new MediaStream(stream.getAudioTracks()));
             this.internalLocalAudioTrigger.update((value: number) => value + 1);
 
-            const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
-
-            const uniqueDevices: Map<string, MediaDeviceInfo> = new Map();
-            devices.forEach((device: MediaDeviceInfo) => {
-                const key: string = device.kind + " " + device.groupId;
-
-                if (!uniqueDevices.has(key)) {
-                    uniqueDevices.set(key, device);
-                }
-            });
-
-            this.internalDevices.set(Array.from(uniqueDevices.values()));
-
-            this.internalSelectedVideoDeviceId.set(this.internalLocalVideoStream().getVideoTracks()[0]?.getSettings().deviceId || "");
-            this.internalSelectedAudioDeviceId.set(this.internalLocalAudioStream().getAudioTracks()[0]?.getSettings().deviceId || "");
+            await this.enumerateDevices();
 
             navigator.mediaDevices.ondevicechange = async () => {
-                const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
-
-                const uniqueDevices: Map<string, MediaDeviceInfo> = new Map();
-                devices.forEach((device: MediaDeviceInfo) => {
-                    const key: string = device.kind + " " + device.groupId;
-
-                    if (!uniqueDevices.has(key)) {
-                        uniqueDevices.set(key, device);
-                    }
-                });
-
-                this.internalDevices.set(Array.from(uniqueDevices.values()));
+                await this.enumerateDevices();
             };
         }
         catch (error) {
             console.error("getUserMedia error", error);
+        }
+    }
+
+    private async enumerateDevices(): Promise<void> {
+        const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
+
+        const uniqueDevices: Map<string, MediaDeviceInfo> = new Map();
+        devices.forEach((device: MediaDeviceInfo) => {
+            const key: string = device.kind + " " + device.groupId;
+
+            if (!uniqueDevices.has(key)) {
+                uniqueDevices.set(key, device);
+            }
+        });
+
+        this.internalDevices.set(Array.from(uniqueDevices.values()));
+
+        if (!this.internalSelectedVideoDeviceId()) {
+            this.internalSelectedVideoDeviceId.set(this.internalLocalVideoStream().getVideoTracks()[0]?.getSettings().deviceId || "");
+        }
+
+        if (!this.internalSelectedAudioDeviceId()) {
+            this.internalSelectedAudioDeviceId.set(this.internalLocalAudioStream().getAudioTracks()[0]?.getSettings().deviceId || "");
         }
     }
 
@@ -663,7 +716,14 @@ export class ConferenceWebsocket {
 
     private async startScreenShare(): Promise<void> {
         try {
-            const screenStream: MediaStream = await navigator.mediaDevices.getDisplayMedia();
+            const screenStream: MediaStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    width: { ideal: 1920, max: 1920 },
+                    height: { ideal: 1080, max: 1080 },
+                    frameRate: { ideal: 30, max: 60 }
+                },
+                audio: false
+            });
 
             screenStream.getTracks().forEach((track: MediaStreamTrack) => {
                 track.onended = async () => {
@@ -675,10 +735,13 @@ export class ConferenceWebsocket {
 
             this.internalLocalScreenShareTrigger.update((value: number) => value + 1);
 
-            for (const peerConnection of Object.values(this.peerConnections)) {
-                screenStream.getTracks().forEach((track: MediaStreamTrack) => {
-                    peerConnection.addTrack(track, screenStream);
-                });
+            for (const socketId of Object.keys(this.peerConnections)) {
+                if(this.screenSenderPeerConnections[socketId]) {
+                    this.screenSenderPeerConnections[socketId].close();
+                    delete this.screenSenderPeerConnections[socketId];
+                }
+                
+                this.screenSenderPeerConnections[socketId] = this.createPeerConnection(socketId, true);
             }
 
             this.socket?.emit("start-screen-share");
@@ -691,16 +754,11 @@ export class ConferenceWebsocket {
     private async stopScreenShare(): Promise<void> {
         const tracks: MediaStreamTrack[] = this.internalLocalScreenShareStream().getTracks();
 
-        for (const peerConnection of Object.values(this.peerConnections)) {
-            for (const track of tracks) {
-                track.stop();
+        tracks.forEach((track: MediaStreamTrack) => track.stop());
 
-                const sender: RTCRtpSender | undefined = peerConnection.getSenders().find((sender: RTCRtpSender) => sender.track === track);
-
-                if (sender) {
-                    peerConnection.removeTrack(sender);
-                }
-            }
+        for (const socketId of Object.keys(this.screenSenderPeerConnections)) {
+            this.screenSenderPeerConnections[socketId].close();
+            delete this.screenSenderPeerConnections[socketId];
         }
 
         this.internalLocalScreenShareStream.set(new MediaStream());
@@ -736,27 +794,34 @@ export class ConferenceWebsocket {
         }, 0);
     }
 
-    private createPeerConnection(socketId: string): RTCPeerConnection {
+    private createPeerConnection(socketId: string, isScreenShare: boolean): RTCPeerConnection {
         const peerConnection: RTCPeerConnection = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
 
         this.peerConnectionIsPolite[socketId] = this.socket.id! < socketId;
 
-        this.internalLocalAudioStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
-            peerConnection.addTrack(track);
-        });
+        if (!isScreenShare) {
+            this.internalLocalAudioStream().getAudioTracks().forEach((track: MediaStreamTrack) => {
+                peerConnection.addTrack(track);
+            });
 
-        this.internalLocalVideoStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
-            peerConnection.addTrack(track);
-        });
-
-        this.internalLocalScreenShareStream().getTracks().forEach((track: MediaStreamTrack) => {
-            peerConnection.addTrack(track);
-        });
+            this.internalLocalVideoStream().getVideoTracks().forEach((track: MediaStreamTrack) => {
+                peerConnection.addTrack(track);
+            });
+        }
+        else {
+            this.internalLocalScreenShareStream().getTracks().forEach((track: MediaStreamTrack) => {
+                peerConnection.addTrack(track);
+            });
+        }
 
         peerConnection.ontrack = (event: RTCTrackEvent) => {
             const currentRemoteStreams: Record<string, RemotePeerType> = this.internalRemotePeers();
+
+            if (!currentRemoteStreams[socketId]) {
+                return;
+            }
 
             const updatedEntry: RemotePeerType = {
                 ...currentRemoteStreams[socketId],
@@ -765,15 +830,15 @@ export class ConferenceWebsocket {
                 screenShareStream: currentRemoteStreams[socketId]?.screenShareStream || new MediaStream(),
             };
 
-            if (event.track.kind === "audio") {
-                updatedEntry.audioStream.addTrack(event.track);
+            if (isScreenShare) {
+                updatedEntry.screenShareStream.addTrack(event.track);
             }
-
-            if (event.track.kind === "video") {
-                if (event.streams.length) {
-                    updatedEntry.screenShareStream.addTrack(event.track);
+            else {
+                if (event.track.kind === "audio") {
+                    updatedEntry.audioStream.addTrack(event.track);
                 }
-                else {
+
+                if (event.track.kind === "video") {
                     updatedEntry.videoStream.addTrack(event.track);
                 }
             }
@@ -787,7 +852,7 @@ export class ConferenceWebsocket {
 
         peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
             if (event.candidate) {
-                this.socket.emit("iceCandidate", { socketId: socketId, candidate: event.candidate });
+                this.socket.emit("iceCandidate", { socketId: socketId, candidate: event.candidate, isScreenShare: isScreenShare });
             }
         };
 
@@ -805,24 +870,33 @@ export class ConferenceWebsocket {
 
                 this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
                 this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
-                this.socket?.emit((this.isScreenSharing() ? "start-screen-share" : "stop-screen-share"));
             }
         };
 
         peerConnection.onnegotiationneeded = async () => {
             try {
-                this.peerConnectionMakingOffer[socketId] = true;
+                if (isScreenShare) {
+                    this.screenPeerConnectionMakingOffer[socketId] = true;
+                }
+                else {
+                    this.peerConnectionMakingOffer[socketId] = true;
+                }
 
                 const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
 
-                this.socket.emit("offer", { socketId, offer: peerConnection.localDescription });
+                this.socket.emit("offer", { socketId, offer: peerConnection.localDescription, isScreenShare: isScreenShare });
             }
             catch (error) {
                 console.error("Negotiation failed", error);
             }
             finally {
-                this.peerConnectionMakingOffer[socketId] = false;
+                if (isScreenShare) {
+                    this.screenPeerConnectionMakingOffer[socketId] = false;
+                }
+                else {
+                    this.peerConnectionMakingOffer[socketId] = false;
+                }
             }
         };
 
@@ -857,16 +931,20 @@ export class ConferenceWebsocket {
             delete this.peerConnections[socketId];
         }
 
-        if (this.peerConnectionMakingOffer[socketId]) {
-            delete this.peerConnectionMakingOffer[socketId];
+        if (this.screenSenderPeerConnections[socketId]) {
+            this.screenSenderPeerConnections[socketId].close();
+            delete this.screenSenderPeerConnections[socketId];
         }
 
-        if (this.peerConnectionIgnoreOffer[socketId]) {
-            delete this.peerConnectionIgnoreOffer[socketId];
+        if (this.screenReceiverPeerConnections[socketId]) {
+            this.screenReceiverPeerConnections[socketId].close();
+            delete this.screenReceiverPeerConnections[socketId];
         }
 
-        if (this.peerConnectionIsPolite[socketId]) {
-            delete this.peerConnectionIsPolite[socketId];
-        }
+        delete this.peerConnectionMakingOffer[socketId];
+        delete this.screenPeerConnectionMakingOffer[socketId];
+        delete this.peerConnectionIgnoreOffer[socketId];
+        delete this.screenPeerConnectionIgnoreOffer[socketId];
+        delete this.peerConnectionIsPolite[socketId];
     }
 }
