@@ -41,7 +41,8 @@
             ></ui-input>
 
             <div class="body__list">
-                @for (user of users(); track user.id) {
+                @if (searchUserState() ==="loaded"){ @for (user of users();
+                track user.id) {
                 <div
                     class="list__item"
                     [ngClass]="{ 'list__item_selected': isUserSelected(user.id) }"
@@ -52,6 +53,17 @@
                     <span class="info__name">
                         {{ user.name }} {{ user.surname }}
                     </span>
+                </div>
+                } } @else if (searchUserState() ==="loading") {
+                <div class="body__loader-wrapper">
+                    <div class="body__loader"></div>
+                </div>
+                } @else if (searchUserState() ==="no-results") {
+                <div class="body__no-results">
+                    <ui-title
+                        [title]="'No users found'"
+                        [size]="'small'"
+                    ></ui-title>
                 </div>
                 }
             </div>

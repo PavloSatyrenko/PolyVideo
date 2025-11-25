@@ -1,5 +1,5 @@
 <div class="list">
-    @for (chat of chats(); track chat.user.id) {
+    @if (isAnyChatAvailable()) { @for (chat of chats(); track chat.user.id) {
     <div
         [ngClass]="{ 'list__item_selected': selectedChatUserId() === chat.user.id }"
         class="list__item"
@@ -11,9 +11,14 @@
             <span class="info__name">
                 {{ chat.user.name }} {{ chat.user.surname }}
             </span>
-            
+
             <span class="info__message">{{ chat.content }}</span>
         </div>
+    </div>
+    } } @else {
+    <div class="chats__no-chats">
+        No chats available.<br />
+        Start a new chat by clicking the + button.
     </div>
     }
 </div>

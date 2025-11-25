@@ -84,3 +84,36 @@
     gap: 12px;
     justify-content: flex-end;
 }
+
+.body__loader-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+}
+
+.body__loader {
+    width: 52px;
+    aspect-ratio: 1;
+    border: 6px solid var(--primary-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.body__no-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+}

@@ -58,3 +58,13 @@
     color: var(--secondary-color);
     white-space: nowrap;
 }
+
+.chats__no-chats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 16px;
+    font-size: 20px;
+    text-align: center;
+}

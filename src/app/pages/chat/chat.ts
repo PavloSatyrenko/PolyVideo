@@ -9,6 +9,8 @@ import { UserType } from "@shared/types/UserType";
 import { ChatsService } from "@shared/services/chats.service";
 import { NgClass } from "@angular/common";
 import { Input } from "@shared/components/input/input";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { debounceTime, distinctUntilChanged, Observable, switchMap, tap } from "rxjs";
 
 @Component({
     selector: "app-chat",
@@ -35,24 +37,25 @@ export class Chat {
     private chatsService: ChatsService = inject(ChatsService);
 
     constructor() {
-        effect(() => {
-            const query: string = this.searchUserQuery().trim();
+        const searchQueryObservable: Observable<string> = toObservable(this.searchUserQuery);
 
-            this.searchUserState.set("loading");
-
-            if (this.searchUserDebounceTimeout) {
-                clearTimeout(this.searchUserDebounceTimeout);
-                this.searchUserDebounceTimeout = null;
-            }
-
-            this.searchUserDebounceTimeout = setTimeout(async () => {
-                await this.searchUsers(query);
-            }, 300);
+        searchQueryObservable.pipe(
+            debounceTime(300),
+            distinctUntilChanged(),
+            tap(() => this.searchUserState.set("loading")),
+            switchMap((query: string) => this.chatsService.getUsersToChat(query))
+        ).subscribe((users: UserType[]) => {
+            this.users.set(users);
+            this.searchUserState.set(users.length === 0 ? "no-results" : "loaded");
         });
     }
 
-    private async searchUsers(query: string): Promise<void> {
-        this.chatsService.getUsersToChat(query)
+    protected openUsersPopup(): void {
+        this.searchUserQuery.set("");
+
+        this.searchUserState.set("loading");
+
+        this.chatsService.getUsersToChat("")
             .then((users: UserType[]) => {
                 this.users.set(users);
                 this.searchUserState.set(users.length === 0 ? "no-results" : "loaded");
@@ -61,11 +64,7 @@ export class Chat {
                     this.selectedUserId.set("");
                 }
             });
-    }
 
-    protected openUsersPopup(): void {
-        this.searchUserQuery.set("");
-        this.searchUsers("");
         this.selectedUserId.set("");
         this.isUsersPopupOpen.set(true);
     }
