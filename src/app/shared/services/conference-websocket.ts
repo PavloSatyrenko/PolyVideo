@@ -243,7 +243,7 @@ export class ConferenceWebsocket {
             }
 
             if (this.isScreenSharing()) {
-                this.screenSenderPeerConnections[data.socketId] = this.createPeerConnection(data.socketId, true);
+                this.screenSenderPeerConnections[data.socketId] = this.createPeerConnection(data.socketId, true, "sender");
 
                 try {
                     const offer: RTCSessionDescriptionInit = await this.screenSenderPeerConnections[data.socketId].createOffer();
@@ -260,7 +260,7 @@ export class ConferenceWebsocket {
             const peerConnections: Record<string, RTCPeerConnection> = data.isScreenShare ? this.screenReceiverPeerConnections : this.peerConnections;
 
             if (!peerConnections[data.socketId]) {
-                peerConnections[data.socketId] = this.createPeerConnection(data.socketId, data.isScreenShare);
+                peerConnections[data.socketId] = this.createPeerConnection(data.socketId, data.isScreenShare, "receiver");
             }
 
             const makingOfferRecord: Record<string, boolean> = data.isScreenShare ? this.screenPeerConnectionMakingOffer : this.peerConnectionMakingOffer;
@@ -324,8 +324,20 @@ export class ConferenceWebsocket {
             }
         });
 
-        this.socket.on("iceCandidate", async (data: { socketId: string, candidate: RTCIceCandidate, isScreenShare: boolean }) => {
-            const peerConnections: Record<string, RTCPeerConnection> = data.isScreenShare ? this.screenReceiverPeerConnections : this.peerConnections;
+        this.socket.on("iceCandidate", async (data: { socketId: string, candidate: RTCIceCandidate, isScreenShare: boolean, role?: string }) => {
+            let peerConnections!: Record<string, RTCPeerConnection>;
+
+            if (data.isScreenShare) {
+                if (data.role === "sender") {
+                    peerConnections = this.screenReceiverPeerConnections;
+                }
+                else if (data.role === "receiver") {
+                    peerConnections = this.screenSenderPeerConnections;
+                }
+            }
+            else {
+                peerConnections = this.peerConnections;
+            }
 
             if (!peerConnections[data.socketId] || !data.candidate) {
                 return;
@@ -736,12 +748,15 @@ export class ConferenceWebsocket {
             this.internalLocalScreenShareTrigger.update((value: number) => value + 1);
 
             for (const socketId of Object.keys(this.peerConnections)) {
-                if(this.screenSenderPeerConnections[socketId]) {
+                if (this.screenSenderPeerConnections[socketId]) {
                     this.screenSenderPeerConnections[socketId].close();
                     delete this.screenSenderPeerConnections[socketId];
+
+                    delete this.screenPeerConnectionMakingOffer[socketId];
+                    delete this.screenPeerConnectionIgnoreOffer[socketId];
                 }
-                
-                this.screenSenderPeerConnections[socketId] = this.createPeerConnection(socketId, true);
+
+                this.screenSenderPeerConnections[socketId] = this.createPeerConnection(socketId, true, "sender");
             }
 
             this.socket?.emit("start-screen-share");
@@ -759,6 +774,9 @@ export class ConferenceWebsocket {
         for (const socketId of Object.keys(this.screenSenderPeerConnections)) {
             this.screenSenderPeerConnections[socketId].close();
             delete this.screenSenderPeerConnections[socketId];
+
+            delete this.screenPeerConnectionMakingOffer[socketId];
+            delete this.screenPeerConnectionIgnoreOffer[socketId];
         }
 
         this.internalLocalScreenShareStream.set(new MediaStream());
@@ -794,7 +812,7 @@ export class ConferenceWebsocket {
         }, 0);
     }
 
-    private createPeerConnection(socketId: string, isScreenShare: boolean): RTCPeerConnection {
+    private createPeerConnection(socketId: string, isScreenShare: boolean, role?: "sender" | "receiver"): RTCPeerConnection {
         const peerConnection: RTCPeerConnection = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
@@ -852,7 +870,7 @@ export class ConferenceWebsocket {
 
         peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
             if (event.candidate) {
-                this.socket.emit("iceCandidate", { socketId: socketId, candidate: event.candidate, isScreenShare: isScreenShare });
+                this.socket.emit("iceCandidate", { socketId: socketId, candidate: event.candidate, isScreenShare: isScreenShare, role: role });
             }
         };
 
