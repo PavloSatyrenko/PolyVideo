@@ -14,7 +14,7 @@ export class Sidebar {
 
     protected sidebarItems: SidebarItemType[] = [
         { link: "meetings", label: "Meetings", icon: "fa-solid fa-video", isNotified: false },
-        { link: "chat", label: "Chat", icon: "fa-solid fa-comment-dots", isNotified: true },
+        { link: "chat", label: "Chat", icon: "fa-solid fa-comment-dots", isNotified: false },
     ];
 
     toggleSidebarExpansion(): void {
