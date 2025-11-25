@@ -232,27 +232,9 @@ export class ConferenceWebsocket {
                     screenShareStream: streams[data.socketId]?.screenShareStream || new MediaStream()
                 }
             }));
-
-            try {
-                const offer: RTCSessionDescriptionInit = await this.peerConnections[data.socketId].createOffer();
-                await this.peerConnections[data.socketId].setLocalDescription(offer);
-                this.socket.emit("offer", { socketId: data.socketId, offer: offer, isScreenShare: false });
-            }
-            catch (error) {
-                console.error("Error during offer handling", error);
-            }
-
+            
             if (this.isScreenSharing()) {
                 this.screenSenderPeerConnections[data.socketId] = this.createPeerConnection(data.socketId, true, "sender");
-
-                try {
-                    const offer: RTCSessionDescriptionInit = await this.screenSenderPeerConnections[data.socketId].createOffer();
-                    await this.screenSenderPeerConnections[data.socketId].setLocalDescription(offer);
-                    this.socket.emit("offer", { socketId: data.socketId, offer: offer, isScreenShare: true });
-                }
-                catch (error) {
-                    console.error("Error during screen share offer handling", error);
-                }
             }
         });
 
@@ -876,18 +858,20 @@ export class ConferenceWebsocket {
 
         peerConnection.onconnectionstatechange = () => {
             if (peerConnection.connectionState === "connected") {
-                peerConnection.getSenders().forEach((sender: RTCRtpSender) => {
-                    if (sender.track?.kind === "audio") {
-                        sender.track.enabled = this.isAudioEnabled();
-                    }
+                if (!isScreenShare) {
+                    peerConnection.getSenders().forEach((sender: RTCRtpSender) => {
+                        if (sender.track?.kind === "audio") {
+                            sender.track.enabled = this.isAudioEnabled();
+                        }
 
-                    if (sender.track?.kind === "video") {
-                        sender.track.enabled = this.isVideoEnabled();
-                    }
-                });
+                        if (sender.track?.kind === "video") {
+                            sender.track.enabled = this.isVideoEnabled();
+                        }
+                    });
 
-                this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
-                this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
+                    this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
+                    this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
+                }
             }
         };
 
