@@ -14,6 +14,9 @@ import { NotificationService } from "./notification.service";
 })
 export class ConferenceWebsocket {
     private socket!: Socket;
+
+    protected isReconnecting: WritableSignal<boolean> = signal<boolean>(false);
+
     private peerConnections: Record<string, RTCPeerConnection> = {};
     private screenSenderPeerConnections: Record<string, RTCPeerConnection> = {};
     private screenReceiverPeerConnections: Record<string, RTCPeerConnection> = {};
@@ -232,7 +235,7 @@ export class ConferenceWebsocket {
                     screenShareStream: streams[data.socketId]?.screenShareStream || new MediaStream()
                 }
             }));
-            
+
             if (this.isScreenSharing()) {
                 this.screenSenderPeerConnections[data.socketId] = this.createPeerConnection(data.socketId, true, "sender");
             }
@@ -330,6 +333,30 @@ export class ConferenceWebsocket {
             }
             catch (error) {
                 console.error("Error adding received ice candidate", error);
+            }
+        });
+
+        this.socket.on("connect_error", () => {
+            if (!this.isReconnecting()) {
+                this.notificationService.showNotification("Connection Error", "Unable to connect to the server. Retrying...", "error", 0);
+            }
+
+            this.isReconnecting.set(true);
+
+            for (const socketId in this.peerConnections) {
+                this.closePeer(socketId);
+            }
+
+            this.stopScreenShare();
+        });
+
+        this.socket.on("connect", () => {
+            if (this.isReconnecting()) {
+                this.notificationService.hideNotification();
+
+                this.connect(this.conferenceCode);
+
+                this.isReconnecting.set(false);
             }
         });
 
@@ -856,6 +883,20 @@ export class ConferenceWebsocket {
             }
         };
 
+        peerConnection.oniceconnectionstatechange = async () => {
+            if (peerConnection.iceConnectionState === "disconnected") {
+                try {
+                    const offer: RTCSessionDescriptionInit = await peerConnection.createOffer({ iceRestart: true });
+                    await peerConnection.setLocalDescription(offer);
+
+                    this.socket.emit("offer", { socketId, offer: peerConnection.localDescription, isScreenShare: isScreenShare });
+                }
+                catch (error) {
+                    console.error("ICE restart failed", error);
+                }
+            }
+        };
+
         peerConnection.onconnectionstatechange = () => {
             if (peerConnection.connectionState === "connected") {
                 if (!isScreenShare) {
@@ -872,6 +913,10 @@ export class ConferenceWebsocket {
                     this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
                     this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
                 }
+            }
+
+            if (peerConnection.connectionState === "failed") {
+                this.closePeer(socketId);
             }
         };
 

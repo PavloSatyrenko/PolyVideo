@@ -4,10 +4,11 @@ import { Room } from "@components/conference/room/room";
 import { WaitingRoom } from "@components/conference/waiting-room/waiting-room";
 import { AuthService } from "@shared/services/auth.service";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
+import { Notification } from "@shared/components/notification/notification";
 
 @Component({
     selector: "app-layout-conference",
-    imports: [WaitingRoom, Room],
+    imports: [WaitingRoom, Room, Notification],
     templateUrl: "./conference.html",
     styleUrl: "./conference.css"
 })
