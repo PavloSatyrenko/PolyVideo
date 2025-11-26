@@ -77,8 +77,6 @@ export class ConferenceWebsocket {
 
     private peerConnectionMakingOffer: Record<string, boolean> = {};
     private screenPeerConnectionMakingOffer: Record<string, boolean> = {};
-    private peerConnectionIgnoreOffer: Record<string, boolean> = {};
-    private screenPeerConnectionIgnoreOffer: Record<string, boolean> = {};
     private peerConnectionIsPolite: Record<string, boolean> = {};
 
     private conferenceCode: string = "";
@@ -151,7 +149,7 @@ export class ConferenceWebsocket {
         });
     }
 
-    public connect(roomCode: string): void {
+    public connect(roomCode: string, isReconnected?: boolean): void {
         if (!this.socket || !this.socket.connected) {
             this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
         }
@@ -163,28 +161,40 @@ export class ConferenceWebsocket {
         this.isConnected.set(true);
         this.isJoining.set(false);
 
-        this.meetingsService.addMeetingToRecent(roomCode);
+        if (!isReconnected) {
+            this.meetingsService.addMeetingToRecent(roomCode);
 
-        if (this.internalMeeting()?.ownerId === this.authService.user()?.id) {
-            this.socket.emit("owner-joined");
+            this.socket.removeAllListeners();
 
-            this.socket.on("join-request", (data: { socketId: string, name: string }) => {
-                this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
-                    if (requests.find((request: { name: string, socketId: string }) => request.socketId === data.socketId)) {
-                        return requests;
-                    }
+            if (this.internalMeeting()?.ownerId === this.authService.user()?.id) {
+                this.socket.emit("owner-joined");
 
-                    return [...requests, { name: data.name, socketId: data.socketId }];
-                });
-            });
+                this.setupOwnerSocketListeners();
+            }
 
-            this.socket.on("request-cancelled", (socketId: string) => {
-                this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
-                    return requests.filter((request: { name: string, socketId: string }) => request.socketId !== socketId);
-                });
-            });
+            this.setupSocketListeners();
         }
+    }
 
+    private setupOwnerSocketListeners(): void {
+        this.socket.on("join-request", (data: { socketId: string, name: string }) => {
+            this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
+                if (requests.find((request: { name: string, socketId: string }) => request.socketId === data.socketId)) {
+                    return requests;
+                }
+
+                return [...requests, { name: data.name, socketId: data.socketId }];
+            });
+        });
+
+        this.socket.on("request-cancelled", (socketId: string) => {
+            this.internalRequestToJoin.update((requests: { name: string, socketId: string }[]) => {
+                return requests.filter((request: { name: string, socketId: string }) => request.socketId !== socketId);
+            });
+        });
+    }
+
+    private setupSocketListeners(): void {
         this.socket.on("meeting-info-updated", (data: { title: string, isWaitingRoom: boolean, isScreenSharing: boolean, isGuestAllowed: boolean }) => {
             this.internalMeeting.update((meeting: MeetingType | null) => {
                 if (meeting) {
@@ -253,21 +263,7 @@ export class ConferenceWebsocket {
             const offerCollision: boolean = makingOfferRecord[data.socketId] || peerConnections[data.socketId].signalingState !== "stable";
 
             if (offerCollision && !this.peerConnectionIsPolite[data.socketId]) {
-                if (data.isScreenShare) {
-                    this.screenPeerConnectionIgnoreOffer[data.socketId] = true;
-                }
-                else {
-                    this.peerConnectionIgnoreOffer[data.socketId] = true;
-                }
-
                 return;
-            }
-
-            if (data.isScreenShare) {
-                this.screenPeerConnectionIgnoreOffer[data.socketId] = false;
-            }
-            else {
-                this.peerConnectionIgnoreOffer[data.socketId] = false;
             }
 
             try {
@@ -293,14 +289,8 @@ export class ConferenceWebsocket {
         this.socket.on("answer", async (data: { socketId: string, answer: RTCSessionDescriptionInit, isScreenShare: boolean }) => {
             const peerConnections: Record<string, RTCPeerConnection> = data.isScreenShare ? this.screenSenderPeerConnections : this.peerConnections;
 
-            const ignoreOfferRecord: Record<string, boolean> = data.isScreenShare ? this.screenPeerConnectionIgnoreOffer : this.peerConnectionIgnoreOffer;
-
             try {
-                if (ignoreOfferRecord[data.socketId]) {
-                    return;
-                }
-
-                if (peerConnections[data.socketId] && data.answer) {
+                if (peerConnections[data.socketId] && data.answer && peerConnections[data.socketId].signalingState === "have-local-offer") {
                     await peerConnections[data.socketId].setRemoteDescription(data.answer);
                 }
             }
@@ -333,30 +323,6 @@ export class ConferenceWebsocket {
             }
             catch (error) {
                 console.error("Error adding received ice candidate", error);
-            }
-        });
-
-        this.socket.on("connect_error", () => {
-            if (!this.isReconnecting()) {
-                this.notificationService.showNotification("Connection Error", "Unable to connect to the server. Retrying...", "error", 0);
-            }
-
-            this.isReconnecting.set(true);
-
-            for (const socketId in this.peerConnections) {
-                this.closePeer(socketId);
-            }
-
-            this.stopScreenShare();
-        });
-
-        this.socket.on("connect", () => {
-            if (this.isReconnecting()) {
-                this.notificationService.hideNotification();
-
-                this.connect(this.conferenceCode);
-
-                this.isReconnecting.set(false);
             }
         });
 
@@ -424,7 +390,6 @@ export class ConferenceWebsocket {
                 delete this.screenReceiverPeerConnections[socketId];
 
                 delete this.screenPeerConnectionMakingOffer[socketId];
-                delete this.screenPeerConnectionIgnoreOffer[socketId];
 
                 this.internalRemotePeers.update((streams: Record<string, RemotePeerType>) => {
                     if (streams[socketId]) {
@@ -499,6 +464,60 @@ export class ConferenceWebsocket {
         this.socket.on("user-leave", (socketId: string) => {
             this.closePeer(socketId);
         });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                const isWebRtcDead: boolean = Object.values(this.peerConnections)
+                    .every((peerConnection: RTCPeerConnection) => peerConnection.connectionState === "failed");
+
+                this.socket.io.reconnection(true);
+
+                if (this.socket) {
+                    if (!this.socket.connected) {
+                        this.socket.connect();
+                    }
+                    else if (isWebRtcDead) {
+                        this.socket.io.engine.close();
+                    }
+                }
+            }
+            else if (document.visibilityState === "hidden") {
+                const isMobile: boolean = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                if (isMobile && this.socket && this.socket.connected) {
+                    this.socket.io.reconnection(false);
+
+                    this.socket.io.engine.close();
+                }
+            }
+        });
+
+        this.socket.on("disconnect", () => {
+            if (this.socket.active) {
+                if (!this.isReconnecting()) {
+                    this.notificationService.showNotification("Connection Error", "Unable to connect to the server. Retrying...", "error", 0);
+                }
+
+                this.isReconnecting.set(true);
+
+                for (const socketId in this.peerConnections) {
+                    this.closePeer(socketId);
+                }
+            }
+            else {
+                this.leave();
+                this.router.navigate(["/"]);
+            }
+        });
+
+        this.socket.on("connect", () => {
+            if (this.isReconnecting()) {
+                this.notificationService.hideNotification();
+                this.connect(this.conferenceCode, true);
+
+                this.isReconnecting.set(false);
+            }
+        });
     }
 
     public requestToJoin(roomCode: string): void {
@@ -506,16 +525,18 @@ export class ConferenceWebsocket {
             this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
         }
 
-        this.hasOwnerJoined.set(true);
+        this.hasOwnerJoined.set(false);
 
         this.socket.emit("request-to-join", { roomCode, name: this.localName() });
 
         this.isJoining.set(true);
 
-        this.socket.on("owner-not-found", () => {
-            this.hasOwnerJoined.set(false);
-        });
+        this.socket.removeAllListeners();
 
+        this.setupLobbySocketListeners(roomCode);
+    }
+
+    private setupLobbySocketListeners(roomCode: string): void {
         this.socket.on("owner-joined", () => {
             this.hasOwnerJoined.set(true);
         });
@@ -762,7 +783,6 @@ export class ConferenceWebsocket {
                     delete this.screenSenderPeerConnections[socketId];
 
                     delete this.screenPeerConnectionMakingOffer[socketId];
-                    delete this.screenPeerConnectionIgnoreOffer[socketId];
                 }
 
                 this.screenSenderPeerConnections[socketId] = this.createPeerConnection(socketId, true, "sender");
@@ -785,7 +805,6 @@ export class ConferenceWebsocket {
             delete this.screenSenderPeerConnections[socketId];
 
             delete this.screenPeerConnectionMakingOffer[socketId];
-            delete this.screenPeerConnectionIgnoreOffer[socketId];
         }
 
         this.internalLocalScreenShareStream.set(new MediaStream());
@@ -884,16 +903,8 @@ export class ConferenceWebsocket {
         };
 
         peerConnection.oniceconnectionstatechange = async () => {
-            if (peerConnection.iceConnectionState === "disconnected") {
-                try {
-                    const offer: RTCSessionDescriptionInit = await peerConnection.createOffer({ iceRestart: true });
-                    await peerConnection.setLocalDescription(offer);
-
-                    this.socket.emit("offer", { socketId, offer: peerConnection.localDescription, isScreenShare: isScreenShare });
-                }
-                catch (error) {
-                    console.error("ICE restart failed", error);
-                }
+            if (peerConnection.iceConnectionState === "disconnected" || peerConnection.iceConnectionState === "failed") {
+                peerConnection.restartIce();
             }
         };
 
@@ -913,9 +924,17 @@ export class ConferenceWebsocket {
                     this.socket?.emit((this.isAudioEnabled() ? "unmute" : "mute"));
                     this.socket?.emit((this.isVideoEnabled() ? "enable-video" : "disable-video"));
                 }
+                else if (role === "sender" && this.isScreenSharing()) {
+                    this.socket?.emit("start-screen-share");
+                }
             }
 
             if (peerConnection.connectionState === "failed") {
+                if (!navigator.onLine) {
+                    this.socket.io.engine.close();
+                    return;
+                }
+
                 this.closePeer(socketId);
             }
         };
@@ -990,8 +1009,6 @@ export class ConferenceWebsocket {
 
         delete this.peerConnectionMakingOffer[socketId];
         delete this.screenPeerConnectionMakingOffer[socketId];
-        delete this.peerConnectionIgnoreOffer[socketId];
-        delete this.screenPeerConnectionIgnoreOffer[socketId];
         delete this.peerConnectionIsPolite[socketId];
     }
 }
