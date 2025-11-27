@@ -5,6 +5,7 @@ import { WaitingRoom } from "@components/conference/waiting-room/waiting-room";
 import { AuthService } from "@shared/services/auth.service";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { Notification } from "@shared/components/notification/notification";
+import { NotificationService } from "@shared/services/notification.service";
 
 @Component({
     selector: "app-layout-conference",
@@ -25,6 +26,7 @@ export class Conference implements OnInit, OnDestroy {
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+    private notificationService: NotificationService = inject(NotificationService);
     private router: Router = inject(Router);
 
     ngOnInit(): void {
@@ -58,7 +60,7 @@ export class Conference implements OnInit, OnDestroy {
         await this.conferenceWebSocket.setMeetingByCode(this.conferenceCode());
 
         if (!this.conferenceWebSocket.meeting()?.isGuestAllowed && !this.authService.user()) {
-            alert("You must be logged in to join this conference.");
+            this.notificationService.showNotification("Not Allowed", "You must be logged in to join this conference.", "info", 5000);
             return;
         }
 

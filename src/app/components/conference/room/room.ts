@@ -14,6 +14,7 @@ import { MeetingType } from "@shared/types/MeetingType";
 import { Button } from "@shared/components/button/button";
 import { Title } from "@shared/components/title/title";
 import { AuthService } from "@shared/services/auth.service";
+import { NotificationService } from "@shared/services/notification.service";
 
 @Component({
     selector: "app-conference-room",
@@ -80,6 +81,7 @@ export class Room {
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
+    private notificationService: NotificationService = inject(NotificationService);
     private router: Router = inject(Router);
 
     constructor() {
@@ -246,7 +248,7 @@ export class Room {
                         this.conferenceWebSocket.toggleScreenShare();
                     }
                     else {
-                        alert("Screen sharing is not permitted in this meeting.");
+                        this.notificationService.showNotification("Not Allowed", "Screen sharing is not permitted in this meeting.", "info", 5000);
                     }
                 }
                 break;

@@ -10,13 +10,15 @@
         <i class="fa-solid fa-xmark"></i>
     </span>
 
-    <span class="notification__icon">
-        @if (type() === "error") {
+    @if (type() === "error") {
+    <span class="notification__icon notification__icon_type_error">
         <i class="fa-solid fa-circle-xmark"></i>
-        } @else if (type() === "info") {
-        <i class="fa-solid fa-circle-info"></i>
-        }
     </span>
+    } @else if (type() === "info") {
+    <span class="notification__icon notification__icon_type_info">
+        <i class="fa-solid fa-circle-info"></i>
+    </span>
+    }
 
     <div class="notification__content">
         <div class="notification__header">{{ header() }}</div>

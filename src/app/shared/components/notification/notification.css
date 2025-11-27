@@ -42,7 +42,14 @@
 
 .notification__icon {
     font-size: 42px;
+}
+
+.notification__icon_type_info {
     color: var(--secondary-color);
+}
+
+.notification__icon_type_error {
+    color: var(--primary-text-color);
 }
 
 .notification__content {
