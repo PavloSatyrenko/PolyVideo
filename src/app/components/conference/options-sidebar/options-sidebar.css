@@ -1,29 +1,25 @@
 .sidebar {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     height: 100%;
     padding: 16px 24px 24px 32px;
-}
-
-.sidebar__content {
-    display: flex;
-    flex-grow: 1;
-    flex-direction: column;
-    gap: 20px;
+    margin-right: 4px;
     overflow-y: auto;
 }
 
-.sidebar__content::-webkit-scrollbar {
+.sidebar::-webkit-scrollbar {
     width: 8px;
 }
 
-.sidebar__content::-webkit-scrollbar-thumb {
+.sidebar::-webkit-scrollbar-thumb {
     background-color: var(--background-color);
     border-radius: 4px;
 }
 
-.sidebar__content::-webkit-scrollbar-track {
+.sidebar::-webkit-scrollbar-track {
+    margin-top: 8px;
+    margin-bottom: 8px;
     background-color: transparent;
 }
 

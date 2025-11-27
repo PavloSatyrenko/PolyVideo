@@ -1,115 +1,111 @@
 <div class="sidebar">
-    <div class="sidebar__content">
-        <ui-title [title]="'Meeting Options'" [size]="'medium'"></ui-title>
+    <ui-title [title]="'Meeting Options'" [size]="'medium'"></ui-title>
 
-        @if (isMeetingOwner()) {
-        <div class="sidebar__item">
-            <ui-input
-                [placeholder]="'Meeting Title'"
-                [(value)]="meetingTitle"
-                [size]="'large'"
-                [theme]="'primary'"
-                [isFullWidth]="true"
-            ></ui-input>
-        </div>
-
-        <div class="sidebar__item">
-            <ui-checkbox
-                [label]="'Enable Waiting Room'"
-                [(value)]="isWaitingRoomEnabled"
-            ></ui-checkbox>
-        </div>
-
-        <div class="sidebar__item">
-            <ui-checkbox
-                [label]="'Enable Guest Access'"
-                [(value)]="isGuestAccessEnabled"
-            ></ui-checkbox>
-        </div>
-
-        <div class="sidebar__item">
-            <ui-checkbox
-                [label]="'Allow Participants to Share Screen'"
-                [(value)]="isScreenSharingAllowed"
-            ></ui-checkbox>
-        </div>
-        } @else {
-        <div class="sidebart__item">
-            <ui-title [title]="meetingTitle()" [size]="'small'"></ui-title>
-        </div>
-
-        <div class="sidebar__item">
-            <span class="item__text">
-                Waiting Room:
-                <span class="item__status">
-                    {{ isWaitingRoomEnabled() ? 'Enabled' : 'Disabled' }}
-                </span>
-            </span>
-        </div>
-
-        <div class="sidebar__item">
-            <span class="item__text">
-                Guest Access:
-                <span class="item__status">
-                    {{ isGuestAccessEnabled() ? 'Enabled' : 'Disabled' }}
-                </span>
-            </span>
-        </div>
-
-        <div class="sidebar__item">
-            <span class="item__text">
-                Screen Sharing:
-                <span class="item__status">
-                    {{ isScreenSharingAllowed() ? 'Allowed' : 'Not Allowed' }}
-                </span>
-            </span>
-        </div>
-        }
-
-        <ui-title [title]="'Media Options'" [size]="'medium'"></ui-title>
-
-        <div class="sidebar__item">
-            <ui-select
-                [label]="'Camera'"
-                [value]="selectedVideoDeviceId()"
-                (valueChange)="changeVideoDevice($event)"
-                [size]="'small'"
-                [theme]="'primary'"
-                [isFullWidth]="true"
-            >
-                @for(device of availableVideoDevices(); track device.deviceId) {
-                <option [value]="device.deviceId">
-                    {{ device.label | deviceLabel }}
-                </option>
-                }
-            </ui-select>
-        </div>
-
-        <div class="sidebar__item">
-            <ui-select
-                [label]="'Microphone'"
-                [value]="selectedAudioDeviceId()"
-                (valueChange)="changeAudioDevice($event)"
-                [size]="'small'"
-                [theme]="'primary'"
-                [isFullWidth]="true"
-            >
-                @for(device of availableAudioDevices(); track device.deviceId) {
-                <option [value]="device.deviceId">
-                    {{ device.label | deviceLabel }}
-                </option>
-                }
-            </ui-select>
-        </div>
+    @if (isMeetingOwner()) {
+    <div class="sidebar__item">
+        <ui-input
+            [placeholder]="'Meeting Title'"
+            [(value)]="meetingTitle"
+            [size]="'large'"
+            [theme]="'primary'"
+            [isFullWidth]="true"
+        ></ui-input>
     </div>
 
-    <div class="sidebar__save">
-        <ui-button
-            [label]="'Save Changes'"
-            [size]="'large'"
-            [type]="'primary'"
+    <div class="sidebar__item">
+        <ui-checkbox
+            [label]="'Enable Waiting Room'"
+            [(value)]="isWaitingRoomEnabled"
+        ></ui-checkbox>
+    </div>
+
+    <div class="sidebar__item">
+        <ui-checkbox
+            [label]="'Enable Guest Access'"
+            [(value)]="isGuestAccessEnabled"
+        ></ui-checkbox>
+    </div>
+
+    <div class="sidebar__item">
+        <ui-checkbox
+            [label]="'Allow Participants to Share Screen'"
+            [(value)]="isScreenSharingAllowed"
+        ></ui-checkbox>
+    </div>
+
+    <ui-button
+        [label]="'Save Changes'"
+        [size]="'large'"
+        [type]="'primary'"
+        [isFullWidth]="true"
+        (click)="saveOptions()"
+    ></ui-button>
+    } @else {
+    <div class="sidebart__item">
+        <ui-title [title]="meetingTitle()" [size]="'small'"></ui-title>
+    </div>
+
+    <div class="sidebar__item">
+        <span class="item__text">
+            Waiting Room:
+            <span class="item__status">
+                {{ isWaitingRoomEnabled() ? 'Enabled' : 'Disabled' }}
+            </span>
+        </span>
+    </div>
+
+    <div class="sidebar__item">
+        <span class="item__text">
+            Guest Access:
+            <span class="item__status">
+                {{ isGuestAccessEnabled() ? 'Enabled' : 'Disabled' }}
+            </span>
+        </span>
+    </div>
+
+    <div class="sidebar__item">
+        <span class="item__text">
+            Screen Sharing:
+            <span class="item__status">
+                {{ isScreenSharingAllowed() ? 'Allowed' : 'Not Allowed' }}
+            </span>
+        </span>
+    </div>
+    }
+
+    <ui-title [title]="'Media Options'" [size]="'medium'"></ui-title>
+
+    <div class="sidebar__item">
+        <ui-select
+            [label]="'Camera'"
+            [value]="selectedVideoDeviceId()"
+            (valueChange)="changeVideoDevice($event)"
+            [size]="'small'"
+            [theme]="'primary'"
             [isFullWidth]="true"
-            (click)="saveOptions()"
-        ></ui-button>
+        >
+            @for(device of availableVideoDevices(); track device.deviceId) {
+            <option [value]="device.deviceId">
+                {{ device.label | deviceLabel }}
+            </option>
+            }
+        </ui-select>
+    </div>
+
+    <div class="sidebar__item">
+        <ui-select
+            [label]="'Microphone'"
+            [value]="selectedAudioDeviceId()"
+            (valueChange)="changeAudioDevice($event)"
+            [size]="'small'"
+            [theme]="'primary'"
+            [isFullWidth]="true"
+        >
+            @for(device of availableAudioDevices(); track device.deviceId) {
+            <option [value]="device.deviceId">
+                {{ device.label | deviceLabel }}
+            </option>
+            }
+        </ui-select>
     </div>
 </div>
