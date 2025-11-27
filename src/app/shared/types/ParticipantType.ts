@@ -6,7 +6,6 @@ export type ParticipantType = {
     isVideoEnabled: boolean,
     audioStream: MediaStream,
     videoStream: MediaStream,
-    isMoved: boolean,
     isLocal: boolean,
     isHandUp: boolean,
     isScreen: boolean

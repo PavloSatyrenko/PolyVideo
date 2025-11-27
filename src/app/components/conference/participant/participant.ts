@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, input, InputSignal } from "@angular/core";
+import { Component, input, InputSignal, output, OutputEmitterRef, Signal } from "@angular/core";
 import { ParticipantType } from "@shared/types/ParticipantType";
 
 @Component({
@@ -10,4 +10,10 @@ import { ParticipantType } from "@shared/types/ParticipantType";
 })
 export class Participant {
     public participant: InputSignal<ParticipantType> = input.required<ParticipantType>();
+
+    public pinParticipant: OutputEmitterRef<ParticipantType> = output<ParticipantType>();
+
+    protected onPinParticipant(): void {
+        this.pinParticipant.emit(this.participant());
+    }
 }

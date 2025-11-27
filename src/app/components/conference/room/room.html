@@ -1,11 +1,23 @@
 <section class="conference__main">
     <div class="conference__view">
-        <div #participantsWrapper class="conference__participants">
-            @for(participant of participants(); track participant.id) {
-            <app-conference-participant
-                [participant]="participant"
-            ></app-conference-participant>
+        <div class="conference__peers">
+            @if (pinnedParticipant()) {
+            <div class="conference__pinned">
+                <app-conference-participant
+                    [participant]="pinnedParticipant()!"
+                    (pinParticipant)="togglePinParticipant(pinnedParticipant()!)"
+                ></app-conference-participant>
+            </div>
             }
+
+            <div #participantsWrapper class="conference__participants">
+                @for(participant of participants(); track participant.id) {
+                <app-conference-participant
+                    [participant]="participant"
+                    (pinParticipant)="togglePinParticipant(participant)"
+                ></app-conference-participant>
+                }
+            </div>
         </div>
 
         @if (isSidebarOpened()) {

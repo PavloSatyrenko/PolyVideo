@@ -1,6 +1,6 @@
 <div
     class="participant"
-    [ngClass]="{'participant_moved': participant().isMoved}"
+    (click)="onPinParticipant()"
 >
     @if (participant().isVideoEnabled) {
     <video
