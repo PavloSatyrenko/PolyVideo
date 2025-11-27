@@ -465,32 +465,7 @@ export class ConferenceWebsocket {
             this.closePeer(socketId);
         });
 
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                const isWebRtcDead: boolean = Object.values(this.peerConnections)
-                    .every((peerConnection: RTCPeerConnection) => peerConnection.connectionState === "failed");
-
-                this.socket.io.reconnection(true);
-
-                if (this.socket) {
-                    if (!this.socket.connected) {
-                        this.socket.connect();
-                    }
-                    else if (isWebRtcDead) {
-                        this.socket.io.engine.close();
-                    }
-                }
-            }
-            else if (document.visibilityState === "hidden") {
-                const isMobile: boolean = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                if (isMobile && this.socket && this.socket.connected) {
-                    this.socket.io.reconnection(false);
-
-                    this.socket.io.engine.close();
-                }
-            }
-        });
+        document.addEventListener("visibilitychange", this.onVisibilityChange);
 
         this.socket.on("disconnect", () => {
             if (this.socket.active) {
@@ -518,6 +493,38 @@ export class ConferenceWebsocket {
                 this.isReconnecting.set(false);
             }
         });
+    }
+
+    private onVisibilityChange(): void {
+        if (document.visibilityState === "visible") {
+            const isWebRtcDead: boolean = Object.values(this.peerConnections)
+                .every((peerConnection: RTCPeerConnection) => peerConnection.connectionState === "failed");
+
+            this.socket.io.reconnection(true);
+
+            if (this.socket) {
+                if (!this.socket.connected) {
+                    this.socket.connect();
+                }
+                else if (isWebRtcDead) {
+                    this.socket.io.engine.close();
+                }
+            }
+
+            if (this.internalLocalVideoStream().getVideoTracks().every((track: MediaStreamTrack) => track.readyState === "ended")) {
+                this.socket.io.engine.close();
+                this.getUserMedia();
+            }
+        }
+        else if (document.visibilityState === "hidden") {
+            const isMobile: boolean = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile && this.socket && this.socket.connected) {
+                this.socket.io.reconnection(false);
+
+                this.socket.io.engine.close();
+            }
+        }
     }
 
     public requestToJoin(roomCode: string): void {
@@ -833,6 +840,8 @@ export class ConferenceWebsocket {
 
         this.socket?.emit("leave", this.conferenceCode);
         this.socket?.disconnect();
+
+        document.removeEventListener("visibilitychange", this.onVisibilityChange);
 
         setTimeout(() => {
             this.isConnected.set(false);
