@@ -15,6 +15,14 @@ import { Notification } from "@shared/components/notification/notification";
 export class Main {
     protected isUserAuthorized: Signal<boolean> = computed(() => !!this.authService.user());
 
+    protected userName: Signal<string> = computed(() => {
+        if (this.isUserAuthorized()) {
+            return this.authService.user()!.name + " " + this.authService.user()!.surname;
+        }
+
+        return "Guest";
+    });
+
     protected meetingCodeValue: WritableSignal<string> = signal<string>("");
 
     private authService: AuthService = inject(AuthService);

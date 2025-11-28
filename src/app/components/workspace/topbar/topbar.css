@@ -18,6 +18,13 @@
 
 .topbar__user {
     display: flex;
+    gap: 12px;
+    align-items: center;
+    padding-right: 4px;
+}
+
+.user__image-wrapper {
+    display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;

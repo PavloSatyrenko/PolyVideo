@@ -4,7 +4,17 @@
             <img src="" alt="PolyVideo Logo" class="header__logo" />
 
             @if (isUserAuthorized()) {
-            <div class="layout__user"></div>
+            <div class="layout__user">
+                <span class="user__name">{{ userName() }}</span>
+
+                <span class="user__image-wrapper">
+                    <img
+                        src="/user.svg"
+                        alt="User Avatar"
+                        class="user__image"
+                    />
+                </span>
+            </div>
             } @else {
             <div class="layout__buttons">
                 <ui-button
