@@ -1,7 +1,9 @@
 <div class="chat">
     <div class="chat__header">
         <div class="chat__person">
-            <span class="person__image-wrapper"></span>
+            <span class="person__image-wrapper">
+                <img src="/user.svg" alt="User Avatar" class="person__image" />
+            </span>
 
             <span class="person__name">{{ chatUserName() }}</span>
         </div>
@@ -11,7 +13,13 @@
         <div #messagesContainer class="body__messages">
             @for(message of chat(); track message.id) {
             <div class="chat__message">
-                <span class="message__image-wrapper"></span>
+                <span class="message__image-wrapper">
+                    <img
+                        src="/user.svg"
+                        alt="User Avatar"
+                        class="message__image"
+                    />
+                </span>
 
                 <div
                     class="message__content"

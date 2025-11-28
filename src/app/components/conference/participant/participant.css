@@ -24,6 +24,9 @@
 }
 
 .participant__image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: min(100%, 500px);
     height: auto;
     max-height: 500px;
@@ -31,6 +34,12 @@
     margin: 16px;
     background-color: var(--element-color);
     border-radius: 50%;
+}
+
+.participant__image {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
 }
 
 .participant__name {

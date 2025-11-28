@@ -19,10 +19,18 @@
 
 .person__image-wrapper {
     display: flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
     background-color: var(--element-color);
     border-radius: 50%;
+}
+
+.person__image {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
 }
 
 .person__name {
@@ -71,10 +79,18 @@
 
 .message__image-wrapper {
     display: flex;
+    align-items: center;
+    justify-content: center;
     width: 42px;
     height: 42px;
     background-color: var(--element-color);
     border-radius: 50%;
+}
+
+.message__image {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
 }
 
 .message__content {

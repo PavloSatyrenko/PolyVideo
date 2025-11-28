@@ -48,7 +48,13 @@
                     [ngClass]="{ 'list__item_selected': isUserSelected(user.id) }"
                     (click)="selectUser(user.id)"
                 >
-                    <span class="item__image-wrapper"></span>
+                    <span class="item__image-wrapper">
+                        <img
+                            src="/user.svg"
+                            alt="User Avatar"
+                            class="item__image"
+                        />
+                    </span>
 
                     <span class="info__name">
                         {{ user.name }} {{ user.surname }}

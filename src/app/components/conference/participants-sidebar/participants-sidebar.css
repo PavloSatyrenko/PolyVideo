@@ -49,6 +49,9 @@
 }
 
 .item__image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
     background-color: var(--element-color);
@@ -59,6 +62,12 @@
 
 .item__image-wrapper_bordered {
     border: 2px solid var(--primary-color);
+}
+
+.item__image {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
 }
 
 .item__name {

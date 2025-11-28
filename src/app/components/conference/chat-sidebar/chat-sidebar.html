@@ -6,7 +6,14 @@
             @for(message of messages(); track message.id) {
             <div class="sidebar__item">
                 <div class="item__person">
-                    <span class="person__image-wrapper"></span>
+                    <span class="person__image-wrapper">
+                        <img
+                            src="/user.svg"
+                            alt="User Avatar"
+                            class="person__image"
+                        />
+                    </span>
+
                     <span class="person__name">{{ message.senderName }}</span>
                 </div>
 

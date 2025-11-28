@@ -11,7 +11,13 @@
                 <span
                     [ngClass]="{'item__image-wrapper_bordered': participant.isHandUp}"
                     class="item__image-wrapper"
-                ></span>
+                >
+                    <img
+                        src="/user.svg"
+                        alt="Participant Avatar"
+                        class="item__image"
+                    />
+                </span>
 
                 @if (participant.id === "local") {
                 <span class="item__name">(You) {{ participant.name }}</span>

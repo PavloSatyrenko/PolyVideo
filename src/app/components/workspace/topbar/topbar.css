@@ -17,8 +17,17 @@
 }
 
 .topbar__user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 100%;
     aspect-ratio: 1;
     background-color: var(--surface-color);
     border-radius: 50%;
+}
+
+.user__avatar {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
 }
