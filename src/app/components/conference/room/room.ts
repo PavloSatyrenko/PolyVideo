@@ -33,7 +33,14 @@ export class Room {
 
     protected participants: WritableSignal<ParticipantType[]> = signal([]);
 
-    protected pinnedParticipant: WritableSignal<ParticipantType | null> = signal<ParticipantType | null>(null);
+    protected pinnedParticipantId: WritableSignal<string | null> = signal<string | null>(null);
+    protected pinnedParticipant: Signal<ParticipantType | null> = computed<ParticipantType | null>(() => {
+        return this.participants().find((participant: ParticipantType) => participant.id === this.pinnedParticipantId()) || null;
+    });
+
+    protected showedParticipant: Signal<ParticipantType[]> = computed<ParticipantType[]>(() => {
+        return this.participants().filter((participant: ParticipantType) => participant.id !== this.pinnedParticipant()?.id);
+    });
 
     private participantsWrapper: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement>>("participantsWrapper");
 
@@ -89,7 +96,7 @@ export class Room {
     constructor() {
         effect(() => {
             if (this.participantsWrapper()) {
-                const participantsAmount: number = this.participants().length;
+                const participantsAmount: number = this.showedParticipant().length;
 
                 let { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, participantsAmount);
 
@@ -99,187 +106,113 @@ export class Room {
         });
 
         effect(() => {
-            //     const remotePeers: Record<string, RemotePeerType> = this.conferenceWebSocket.remotePeers();
+            const remotePeers: Record<string, RemotePeerType> = this.conferenceWebSocket.remotePeers();
 
-            //     const participants: ParticipantType[] = untracked(this.participants);
+            const participants: ParticipantType[] = untracked(this.participants);
 
-            //     const screenStreams: ParticipantType[] = [];
+            const screenStreams: ParticipantType[] = [];
 
-            //     const updatedParticipants: ParticipantType[] = Object.entries(remotePeers).map(([socketId, peer]: [string, RemotePeerType]) => {
-            //         const participant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.id === socketId);
+            const updatedParticipants: ParticipantType[] = Object.entries(remotePeers).map(([socketId, peer]: [string, RemotePeerType]) => {
+                const participant: ParticipantType | undefined = participants.find((participant: ParticipantType) => participant.id === socketId);
 
-            //         if (peer.isScreenSharing) {
-            //             screenStreams.push({
-            //                 id: `${socketId}-screen`,
-            //                 userId: peer.userId,
-            //                 name: `${peer.name} screen`,
-            //                 isAudioEnabled: false,
-            //                 isVideoEnabled: true,
-            //                 audioStream: new MediaStream(),
-            //                 videoStream: peer.screenShareStream,
-            //                 isLocal: false,
-            //                 isHandUp: false,
-            //                 isScreen: true
-            //             });
-            //         }
+                if (peer.isScreenSharing) {
+                    screenStreams.push({
+                        id: `${socketId}-screen`,
+                        userId: peer.userId,
+                        name: `${peer.name} screen`,
+                        isAudioEnabled: false,
+                        isVideoEnabled: true,
+                        audioStream: new MediaStream(),
+                        videoStream: peer.screenShareStream,
+                        isLocal: false,
+                        isHandUp: false,
+                        isScreen: true
+                    });
+                }
 
-            //         if (participant) {
-            //             const currentVideoStreamTracks: MediaStreamTrack[] = participant.videoStream.getVideoTracks();
+                if (participant) {
+                    const currentVideoStreamTracks: MediaStreamTrack[] = participant.videoStream.getVideoTracks();
 
-            //             const newVideoStreamTracks: MediaStreamTrack[] = remotePeers[socketId].videoStream.getVideoTracks();
+                    const newVideoStreamTracks: MediaStreamTrack[] = remotePeers[socketId].videoStream.getVideoTracks();
 
-            //             for (const track of newVideoStreamTracks) {
-            //                 if (!currentVideoStreamTracks.includes(track)) {
-            //                     participant.videoStream.addTrack(track);
-            //                 }
-            //             }
+                    for (const track of newVideoStreamTracks) {
+                        if (!currentVideoStreamTracks.includes(track)) {
+                            participant.videoStream.addTrack(track);
+                        }
+                    }
 
-            //             for (const track of currentVideoStreamTracks) {
-            //                 if (!newVideoStreamTracks.includes(track)) {
-            //                     participant.videoStream.removeTrack(track);
-            //                 }
-            //             }
+                    for (const track of currentVideoStreamTracks) {
+                        if (!newVideoStreamTracks.includes(track)) {
+                            participant.videoStream.removeTrack(track);
+                        }
+                    }
 
-            //             return {
-            //                 ...participant,
-            //                 isAudioEnabled: remotePeers[participant.id].isAudioEnabled,
-            //                 isVideoEnabled: remotePeers[participant.id].isVideoEnabled,
-            //                 isHandUp: remotePeers[participant.id].isHandUp
-            //             };
-            //         }
-            //         else {
-            //             return {
-            //                 id: socketId,
-            //                 userId: peer.userId,
-            //                 name: peer.name,
-            //                 isAudioEnabled: peer.isAudioEnabled,
-            //                 isVideoEnabled: peer.isVideoEnabled,
-            //                 audioStream: peer.audioStream,
-            //                 videoStream: peer.videoStream,
-            //                 isLocal: false,
-            //                 isHandUp: peer.isHandUp,
-            //                 isScreen: false
-            //             };
-            //         }
-            //     });
+                    return {
+                        ...participant,
+                        isAudioEnabled: remotePeers[participant.id].isAudioEnabled,
+                        isVideoEnabled: remotePeers[participant.id].isVideoEnabled,
+                        isHandUp: remotePeers[participant.id].isHandUp
+                    };
+                }
+                else {
+                    return {
+                        id: socketId,
+                        userId: peer.userId,
+                        name: peer.name,
+                        isAudioEnabled: peer.isAudioEnabled,
+                        isVideoEnabled: peer.isVideoEnabled,
+                        audioStream: peer.audioStream,
+                        videoStream: peer.videoStream,
+                        isLocal: false,
+                        isHandUp: peer.isHandUp,
+                        isScreen: false
+                    };
+                }
+            });
 
-            //     updatedParticipants.push(...screenStreams);
+            updatedParticipants.push(...screenStreams);
 
-            //     updatedParticipants.unshift({
-            //         id: "local",
-            //         userId: this.authService.user()?.id || "",
-            //         name: this.conferenceWebSocket.localName(),
-            //         isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-            //         isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-            //         audioStream: new MediaStream(),
-            //         videoStream: this.conferenceWebSocket.localVideoStream(),
-            //         isLocal: true,
-            //         isHandUp: this.conferenceWebSocket.isHandUp(),
-            //         isScreen: false
-            //     });
+            updatedParticipants.unshift({
+                id: "local",
+                userId: this.authService.user()?.id || "",
+                name: this.conferenceWebSocket.localName(),
+                isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
+                isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
+                audioStream: new MediaStream(),
+                videoStream: this.conferenceWebSocket.localVideoStream(),
+                isLocal: true,
+                isHandUp: this.conferenceWebSocket.isHandUp(),
+                isScreen: false
+            });
 
-            //     if (this.conferenceWebSocket.isScreenSharing()) {
-            //         updatedParticipants.unshift({
-            //             id: "local-screen",
-            //             userId: this.authService.user()?.id || "",
-            //             name: this.conferenceWebSocket.localName() + " screen",
-            //             isAudioEnabled: false,
-            //             isVideoEnabled: true,
-            //             audioStream: new MediaStream(),
-            //             videoStream: this.conferenceWebSocket.localScreenShareStream(),
-            //             isLocal: true,
-            //             isHandUp: false,
-            //             isScreen: true
-            //         });
-            //     }
-
-            //     this.participants.set(updatedParticipants);
-            this.participants.set([
-                {
-                    id: "local",
+            if (this.conferenceWebSocket.isScreenSharing()) {
+                updatedParticipants.unshift({
+                    id: "local-screen",
                     userId: this.authService.user()?.id || "",
-                    name: this.conferenceWebSocket.localName(),
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
+                    name: this.conferenceWebSocket.localName() + " screen",
+                    isAudioEnabled: false,
+                    isVideoEnabled: true,
                     audioStream: new MediaStream(),
-                    videoStream: this.conferenceWebSocket.localVideoStream(),
+                    videoStream: this.conferenceWebSocket.localScreenShareStream(),
                     isLocal: true,
-                    isHandUp: this.conferenceWebSocket.isHandUp(),
-                    isScreen: false
-                },
-                {
-                    id: "local",
-                    userId: this.authService.user()?.id || "",
-                    name: this.conferenceWebSocket.localName(),
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                    audioStream: new MediaStream(),
-                    videoStream: this.conferenceWebSocket.localVideoStream(),
-                    isLocal: true,
-                    isHandUp: this.conferenceWebSocket.isHandUp(),
-                    isScreen: false
-                },
-                {
-                    id: "local",
-                    userId: this.authService.user()?.id || "",
-                    name: this.conferenceWebSocket.localName(),
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                    audioStream: new MediaStream(),
-                    videoStream: this.conferenceWebSocket.localVideoStream(),
-                    isLocal: true,
-                    isHandUp: this.conferenceWebSocket.isHandUp(),
-                    isScreen: false
-                },
-                {
-                    id: "local",
-                    userId: this.authService.user()?.id || "",
-                    name: this.conferenceWebSocket.localName(),
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                    audioStream: new MediaStream(),
-                    videoStream: this.conferenceWebSocket.localVideoStream(),
-                    isLocal: true,
-                    isHandUp: this.conferenceWebSocket.isHandUp(),
-                    isScreen: false
-                },
-                {
-                    id: "local",
-                    userId: this.authService.user()?.id || "",
-                    name: this.conferenceWebSocket.localName(),
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                    audioStream: new MediaStream(),
-                    videoStream: this.conferenceWebSocket.localVideoStream(),
-                    isLocal: true,
-                    isHandUp: this.conferenceWebSocket.isHandUp(),
-                    isScreen: false
-                },
-                {
-                    id: "local",
-                    userId: this.authService.user()?.id || "",
-                    name: this.conferenceWebSocket.localName(),
-                    isAudioEnabled: this.conferenceWebSocket.isAudioEnabled(),
-                    isVideoEnabled: this.conferenceWebSocket.isVideoEnabled(),
-                    audioStream: new MediaStream(),
-                    videoStream: this.conferenceWebSocket.localVideoStream(),
-                    isLocal: true,
-                    isHandUp: this.conferenceWebSocket.isHandUp(),
-                    isScreen: false
-                },
-            ])
+                    isHandUp: false,
+                    isScreen: true
+                });
+            }
+
+            this.participants.set(updatedParticipants);
+
+            if (this.participants().length === 1) {
+                this.pinnedParticipantId.set(null);
+            }
         });
     }
 
     private getOptimalParticipantsLayout(wrapperElement: HTMLElement, participantsAmount: number): { rows: number, columns: number } {
         const optimalLayout: { rows: number, columns: number } = {
-            rows: Math.ceil(participantsAmount / 5),
-            columns: 5
+            rows: 1,
+            columns: participantsAmount
         };
-
-        if (this.pinnedParticipant()) {
-            return optimalLayout;
-        }
 
         const aspectRatio: number = wrapperElement.clientWidth / wrapperElement.clientHeight;
         let minWastedSpace: number = Infinity;
@@ -303,12 +236,17 @@ export class Room {
         return optimalLayout;
     }
 
-    protected togglePinParticipant(participant: ParticipantType): void {
-        if (this.pinnedParticipant() && this.pinnedParticipant()!.id === participant.id) {
-            this.pinnedParticipant.set(null);
+    protected togglePinParticipant(participantId: string): void {
+        if (this.participants().length === 1) {
+            this.pinnedParticipantId.set(null);
+            return;
+        }
+
+        if (this.pinnedParticipantId() === participantId) {
+            this.pinnedParticipantId.set(null);
         }
         else {
-            this.pinnedParticipant.set(participant);
+            this.pinnedParticipantId.set(participantId);
         }
     }
 

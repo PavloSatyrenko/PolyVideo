@@ -11,9 +11,9 @@ import { ParticipantType } from "@shared/types/ParticipantType";
 export class Participant {
     public participant: InputSignal<ParticipantType> = input.required<ParticipantType>();
 
-    public pinParticipant: OutputEmitterRef<ParticipantType> = output<ParticipantType>();
+    public pinParticipant: OutputEmitterRef<string> = output<string>();
 
     protected onPinParticipant(): void {
-        this.pinParticipant.emit(this.participant());
+        this.pinParticipant.emit(this.participant().id);
     }
 }
