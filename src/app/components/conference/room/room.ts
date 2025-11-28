@@ -82,6 +82,7 @@ export class Room {
         },
         {
             type: "other",
+            isEnabled: this.isOptionsSidebarOpened()
         },
         {
             type: "leave",

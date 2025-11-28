@@ -27,7 +27,10 @@
         class="control__icon fa-solid fa-hand"
     ></i>
     } @else if (item().type == "other") {
-    <i class="control__icon fa-solid fa-ellipsis-h"></i>
+    <i
+        [ngClass]="{'control__icon_active': item().isEnabled}"
+        class="control__icon fa-solid fa-ellipsis-h"
+    ></i>
     } @else if (item().type == "leave") {
     <i class="control__icon fa-solid fa-sign-out-alt"></i>
     }
