@@ -6,6 +6,7 @@ import { AuthService } from "@shared/services/auth.service";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { Notification } from "@shared/components/notification/notification";
 import { NotificationService } from "@shared/services/notification.service";
+import { Subscription } from "rxjs";
 
 @Component({
     selector: "app-layout-conference",
@@ -21,7 +22,7 @@ export class Conference implements OnInit, OnDestroy {
     protected isJoining: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isJoining());
     protected isConnected: Signal<boolean> = computed<boolean>(() => this.conferenceWebSocket.isConnected());
 
-    private routeSubscription: any;
+    private routeSubscription!: Subscription;
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
@@ -29,7 +30,7 @@ export class Conference implements OnInit, OnDestroy {
     private notificationService: NotificationService = inject(NotificationService);
     private router: Router = inject(Router);
 
-    ngOnInit(): void {
+    public ngOnInit(): void {
         this.routeSubscription = this.activatedRoute.params.subscribe(async (params: Params) => {
             const roomCode: string | undefined = params["code"];
 
@@ -51,7 +52,7 @@ export class Conference implements OnInit, OnDestroy {
         });
     }
 
-    ngOnDestroy(): void {
+    public ngOnDestroy(): void {
         this.conferenceWebSocket.leave();
         this.routeSubscription.unsubscribe();
     }

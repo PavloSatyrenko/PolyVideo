@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, input, InputSignal, output, OutputEmitterRef, Signal } from "@angular/core";
+import { Component, input, InputSignal, output, OutputEmitterRef } from "@angular/core";
 import { ParticipantType } from "@shared/types/ParticipantType";
 
 @Component({

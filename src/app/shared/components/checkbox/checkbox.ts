@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, input, InputSignal, model, ModelSignal, output, OutputEmitterRef } from "@angular/core";
+import { Component, input, InputSignal, model, ModelSignal } from "@angular/core";
 
 @Component({
     selector: "ui-checkbox",

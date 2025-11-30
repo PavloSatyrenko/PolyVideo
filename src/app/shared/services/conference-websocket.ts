@@ -602,7 +602,7 @@ export class ConferenceWebsocket {
     private async enumerateDevices(): Promise<void> {
         const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
 
-        const uniqueDevices: Map<string, MediaDeviceInfo> = new Map();
+        const uniqueDevices: Map<string, MediaDeviceInfo> = new Map<string, MediaDeviceInfo>();
         devices.forEach((device: MediaDeviceInfo) => {
             const key: string = device.kind + " " + device.groupId;
 

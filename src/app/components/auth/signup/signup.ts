@@ -63,7 +63,7 @@ export class Signup {
             const returnUrl: string = this.router.parseUrl(this.router.url).queryParams["redirect"] || "/";
 
             this.router.navigate([returnUrl]);
-        }).catch((error: any) => {
+        }).catch((error: unknown) => {
             console.error("Sign Up Error:", error);
         });
     }

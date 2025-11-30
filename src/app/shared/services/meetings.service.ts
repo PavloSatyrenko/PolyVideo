@@ -1,9 +1,9 @@
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "@shared/environments/environment";
-import { MeetingType } from '@shared/types/MeetingType';
-import { RecentMeetingType } from '@shared/types/RecentMeetingType';
+import { MeetingType } from "@shared/types/MeetingType";
+import { RecentMeetingType } from "@shared/types/RecentMeetingType";
 
 @Injectable({
     providedIn: "root",
@@ -46,7 +46,7 @@ export class MeetingsService {
     }
 
     public async getRecentMeetings(): Promise<RecentMeetingType[]> {
-        return await firstValueFrom(this.httpClient.get<RecentMeetingType[]>(environment.serverURL + `/meetings/recent`));
+        return await firstValueFrom(this.httpClient.get<RecentMeetingType[]>(environment.serverURL + "/meetings/recent"));
     }
 
     public async addMeetingToRecent(meetingCode: string): Promise<void> {
@@ -54,7 +54,7 @@ export class MeetingsService {
     }
 
     public async getOwnedMeetings(): Promise<MeetingType[]> {
-        return await firstValueFrom(this.httpClient.get<MeetingType[]>(environment.serverURL + `/meetings/owned`));
+        return await firstValueFrom(this.httpClient.get<MeetingType[]>(environment.serverURL + "/meetings/owned"));
     }
 
     public async startMeeting(meetingCode: string): Promise<void> {

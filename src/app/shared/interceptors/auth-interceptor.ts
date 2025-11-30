@@ -6,10 +6,10 @@ import { throwError } from "rxjs/internal/observable/throwError";
 import { catchError } from "rxjs/internal/operators/catchError";
 import { switchMap } from "rxjs/internal/operators/switchMap";
 
-export const authInterceptor: HttpInterceptorFn = (request: HttpRequest<any>, next: HttpHandlerFn) => {
+export const authInterceptor: HttpInterceptorFn = (request: HttpRequest<unknown>, next: HttpHandlerFn) => {
     const authService: AuthService = inject(AuthService);
 
-    let newRequest: HttpRequest<any> = request;
+    let newRequest: HttpRequest<unknown> = request;
 
     if (request.url.startsWith(environment.serverURL)) {
         newRequest = request.clone({
@@ -22,7 +22,7 @@ export const authInterceptor: HttpInterceptorFn = (request: HttpRequest<any>, ne
             if (error.status === 401) {
                 return authService.refreshToken().pipe(
                     switchMap(() => next(newRequest)),
-                    catchError((refreshError: any) => {
+                    catchError((refreshError: unknown) => {
                         authService.user.set(null);
                         return throwError(() => refreshError);
                     })

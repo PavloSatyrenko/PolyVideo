@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, output, OutputEmitterRef, signal, Signal, WritableSignal } from "@angular/core";
+import { Component, computed, effect, inject, OnInit, output, OutputEmitterRef, signal, Signal, WritableSignal } from "@angular/core";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { ControlsItem } from "@components/conference/controls-item/controls-item";
 import { Title } from "@shared/components/title/title";
@@ -17,7 +17,7 @@ import { Input } from "@shared/components/input/input";
     templateUrl: "./waiting-room.html",
     styleUrl: "./waiting-room.css"
 })
-export class WaitingRoom {
+export class WaitingRoom implements OnInit {
     protected meetingCode: Signal<string> = computed<string>(() => this.conferenceWebSocket.meeting()?.code || "");
 
     protected localVideoStream: Signal<MediaStream> = computed(() => this.conferenceWebSocket.localVideoStream());

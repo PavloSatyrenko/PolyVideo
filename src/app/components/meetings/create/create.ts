@@ -112,7 +112,7 @@ export class Create {
                 this.scheduledDate(),
             ).then(() => {
                 this.router.navigate(["/workspace", "meetings"]);
-            }).catch((error: any) => {
+            }).catch((error: unknown) => {
                 console.error("Error creating meeting:", error);
             });
         }
@@ -125,7 +125,7 @@ export class Create {
                 this.isPlanned(),
             ).then((meeting: MeetingType) => {
                 this.router.navigate(["/conference", meeting.code]);
-            }).catch((error: any) => {
+            }).catch((error: unknown) => {
                 console.error("Error creating meeting:", error);
             });
         }

@@ -43,7 +43,7 @@ export class Input implements OnInit {
         const newValue: string = target.value;
 
         if (this.type() == "number") {
-            let newNumericValue: number = parseInt(newValue.replaceAll(/[^0-9]/g, "")) || 0;
+            const newNumericValue: number = parseInt(newValue.replaceAll(/[^0-9]/g, "")) || 0;
 
             target.value = newNumericValue.toString();
         }

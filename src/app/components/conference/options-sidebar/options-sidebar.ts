@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, InputSignal, OnInit, Signal, signal, WritableSignal } from "@angular/core";
+import { Component, computed, effect, inject, input, InputSignal, Signal, signal, WritableSignal } from "@angular/core";
 import { Title } from "@shared/components/title/title";
 import { Checkbox } from "@shared/components/checkbox/checkbox";
 import { Input } from "@shared/components/input/input";
@@ -78,7 +78,7 @@ export class OptionsSidebar {
                 this.isScreenSharingAllowed(),
                 this.isGuestAccessEnabled()
             );
-        }).catch((error: any) => {
+        }).catch((error: unknown) => {
             console.error("Failed to save meeting options:", error);
         });
     }

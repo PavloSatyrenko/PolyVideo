@@ -99,7 +99,7 @@ export class Room {
             if (this.participantsWrapper()) {
                 const participantsAmount: number = this.showedParticipant().length;
 
-                let { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, participantsAmount);
+                const { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, participantsAmount);
 
                 document.documentElement.style.setProperty("--columns", columns.toString());
                 document.documentElement.style.setProperty("--rows", rows.toString());

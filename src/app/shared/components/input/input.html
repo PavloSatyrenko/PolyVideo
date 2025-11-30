@@ -3,12 +3,12 @@
         class="input"
         [placeholder]="placeholder()"
         [ngClass]="{
-            'input_size_small': size() == 'small',
-            'input_size_large': size() == 'large',
-            'input_theme_default': theme() == 'default',
-            'input_theme_primary': theme() == 'primary',
-            'input_type_text': type() == 'text',
-            'input_type_number': type() == 'number',
+            'input_size_small': size() === 'small',
+            'input_size_large': size() === 'large',
+            'input_theme_default': theme() === 'default',
+            'input_theme_primary': theme() === 'primary',
+            'input_type_text': type() === 'text',
+            'input_type_number': type() === 'number',
             'input_width_full': isFullWidth(),
             'input_disabled': isDisabled(),
             'input_invalid': !isValid()

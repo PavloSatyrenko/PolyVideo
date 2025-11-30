@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, signal, Signal, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, ElementRef, HostListener, inject, signal, Signal, viewChild, WritableSignal } from "@angular/core";
 import { ChatWebsocket } from "@shared/services/chat-websocket";
 import { List } from "@components/chat/list/list";
 import { ChatType } from "@shared/types/ChatType";

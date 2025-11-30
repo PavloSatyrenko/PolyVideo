@@ -52,8 +52,8 @@ export class Login {
             const returnUrl: string = this.router.parseUrl(this.router.url).queryParams["redirect"] || "/";
 
             this.router.navigate([returnUrl]);
-        }).catch((error: any) => {
-            console.error("Sign Up Error:", error);
+        }).catch((error: unknown) => {
+            console.error("Log in Error:", error);
         });
     }
 }

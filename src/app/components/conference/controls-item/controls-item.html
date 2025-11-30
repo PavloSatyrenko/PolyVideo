@@ -1,37 +1,37 @@
 <button class="control__button" (click)="itemClick($event)">
-    @if (item().type == "audio") { @if (item().isEnabled) {
+    @if (item().type === "audio") { @if (item().isEnabled) {
     <i class="control__icon control__icon_active fa-solid fa-microphone"></i>
     } @else {
     <i class="control__icon fa-solid fa-microphone-slash"></i>
-    } } @else if (item().type == "video") { @if (item().isEnabled) {
+    } } @else if (item().type === "video") { @if (item().isEnabled) {
     <i class="control__icon control__icon_active fa-solid fa-video"></i>
     } @else {
     <i class="control__icon fa-solid fa-video-slash"></i>
-    } } @else if (item().type == "screen") { @if (item().isEnabled) {
+    } } @else if (item().type === "screen") { @if (item().isEnabled) {
     <i class="control__icon control__icon_active fa-solid fa-ban"></i>
     } @else {
     <i class="control__icon fa-solid fa-desktop"></i>
-    } } @else if (item().type == "participants") {
+    } } @else if (item().type === "participants") {
     <i
         [ngClass]="{'control__icon_active': item().isEnabled}"
         class="control__icon fa-solid fa-users"
     ></i>
-    } @else if (item().type == "chat") {
+    } @else if (item().type === "chat") {
     <i
         [ngClass]="{'control__icon_active': item().isEnabled}"
         class="control__icon fa-solid fa-comment"
     ></i>
-    } @else if (item().type == "hand") {
+    } @else if (item().type === "hand") {
     <i
         [ngClass]="{'control__icon_active': item().isEnabled}"
         class="control__icon fa-solid fa-hand"
     ></i>
-    } @else if (item().type == "other") {
+    } @else if (item().type === "other") {
     <i
         [ngClass]="{'control__icon_active': item().isEnabled}"
         class="control__icon fa-solid fa-ellipsis-h"
     ></i>
-    } @else if (item().type == "leave") {
+    } @else if (item().type === "leave") {
     <i class="control__icon fa-solid fa-sign-out-alt"></i>
     }
 </button>
