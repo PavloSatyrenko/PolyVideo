@@ -1,7 +1,13 @@
 <div class="layout">
     <div class="layout__header">
         <div class="header__container container">
-            <img src="" alt="PolyVideo Logo" class="header__logo" />
+            <span class="header__logo">
+                <img
+                    src="/logo.svg"
+                    alt="PolyVideo Logo"
+                    class="logo__image"
+                />
+            </span>
 
             @if (isUserAuthorized()) {
             <div class="layout__user">
@@ -80,7 +86,11 @@
                 </div>
             </div>
 
-            <img src="" alt="PolyVideo Image" class="content__image" />
+            <img
+                src="/main_image.png"
+                alt="PolyVideo Image"
+                class="content__image"
+            />
         </div>
     </div>
 </div>
