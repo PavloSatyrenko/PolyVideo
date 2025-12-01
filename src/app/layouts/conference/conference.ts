@@ -36,6 +36,7 @@ export class Conference implements OnInit, OnDestroy {
 
             if (!roomCode) {
                 this.router.navigate(["/"]);
+                this.notificationService.showNotification("Invalid Room", "No room code provided in the URL.", "error", 5000);
                 return;
             }
 
@@ -43,6 +44,7 @@ export class Conference implements OnInit, OnDestroy {
 
             if (!this.isConferenceExists()) {
                 this.router.navigate(["/"]);
+                this.notificationService.showNotification("Room Not Found", `The room with code "${roomCode}" does not exist.`, "error", 5000);
                 return;
             }
 
