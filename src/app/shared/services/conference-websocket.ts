@@ -444,7 +444,7 @@ export class ConferenceWebsocket {
         this.socket.on("removed-from-meeting", () => {
             this.leave();
             this.router.navigate(["/"]);
-            this.notificationService.showNotification("Removed from Meeting", "You have been removed from the meeting by the owner.", "info", 0);
+            this.notificationService.showNotification("Removed from Meeting", "You have been removed from the meeting by the owner.", "info", 10000);
         });
 
         this.socket.on("ownership-transferred", (participantId: string) => {
@@ -470,7 +470,7 @@ export class ConferenceWebsocket {
         this.socket.on("disconnect", () => {
             if (this.socket.active) {
                 if (!this.isReconnecting()) {
-                    this.notificationService.showNotification("Connection Error", "Unable to connect to the server. Retrying...", "error", 0);
+                    this.notificationService.showNotification("Connection Error", "Unable to connect to the server. Retrying...", "error", 10000);
                 }
 
                 this.isReconnecting.set(true);
@@ -561,7 +561,7 @@ export class ConferenceWebsocket {
             this.isJoining.set(false);
 
             this.router.navigate(["/"]);
-            this.notificationService.showNotification("Request Denied", "Your request to join the meeting was denied by the owner.", "info", 0);
+            this.notificationService.showNotification("Request Denied", "Your request to join the meeting was denied by the owner.", "info", 10000);
         });
     }
 
@@ -598,27 +598,27 @@ export class ConferenceWebsocket {
             console.error("getUserMedia error", error);
             
             if (error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "SecurityError")) {
-                this.notificationService.showNotification("Permission Denied", "Permission to access camera and microphone was denied. Please allow access and try again.", "error", 0);
+                this.notificationService.showNotification("Permission Denied", "Permission to access camera and microphone was denied. Please allow access and try again.", "error", 10000);
                 this.router.navigate(["/"]);
                 return;
             }
             else if (error instanceof DOMException && error.name === "NotFoundError") {
-                this.notificationService.showNotification("No Media Devices", "No camera or microphone devices were found. Please connect a device and try again.", "error", 0);
+                this.notificationService.showNotification("No Media Devices", "No camera or microphone devices were found. Please connect a device and try again.", "error", 10000);
                 this.router.navigate(["/"]);
                 return;
             }
             else if (error instanceof DOMException && error.name === "OverconstrainedError") {
-                this.notificationService.showNotification("Device Constraints Not Satisfied", "The selected camera or microphone does not meet the required constraints. Please select a different device and try again.", "error", 0);
+                this.notificationService.showNotification("Device Constraints Not Satisfied", "The selected camera or microphone does not meet the required constraints. Please select a different device and try again.", "error", 10000);
                 this.router.navigate(["/"]);
                 return;
             }
             else if (error instanceof DOMException && error.name === "NotReadableError") {
-                this.notificationService.showNotification("Device Unavailable", "The camera or microphone is currently in use by another application. Please close other applications and try again.", "error", 0);
+                this.notificationService.showNotification("Device Unavailable", "The camera or microphone is currently in use by another application. Please close other applications and try again.", "error", 10000);
                 this.router.navigate(["/"]);
                 return;
             }
             
-            this.notificationService.showNotification("Media Error", "An error occurred while accessing media devices. Please reload the page and try again.", "error", 0);
+            this.notificationService.showNotification("Media Error", "An error occurred while accessing media devices. Please reload the page and try again.", "error", 10000);
         }
     }
 
@@ -691,23 +691,23 @@ export class ConferenceWebsocket {
             console.error("changeVideoDevice error", error);
 
             if (error instanceof DOMException && error.name === "OverconstrainedError") {
-                this.notificationService.showNotification("Device Constraints Not Satisfied", "The selected camera does not meet the required constraints. Please select a different device and try again.", "error", 0);
+                this.notificationService.showNotification("Device Constraints Not Satisfied", "The selected camera does not meet the required constraints. Please select a different device and try again.", "error", 10000);
                 return;
             }
             else if (error instanceof DOMException && error.name === "NotReadableError") {
-                this.notificationService.showNotification("Device Unavailable", "The camera is currently in use by another application. Please close other applications and try again.", "error", 0);
+                this.notificationService.showNotification("Device Unavailable", "The camera is currently in use by another application. Please close other applications and try again.", "error", 10000);
                 return;
             }
             else if (error instanceof DOMException && error.name === "NotFoundError") {
-                this.notificationService.showNotification("Device Not Found", "The selected camera was not found. Please select a different device and try again.", "error", 0);
+                this.notificationService.showNotification("Device Not Found", "The selected camera was not found. Please select a different device and try again.", "error", 10000);
                 return;
             }
             else if (error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "SecurityError")) {
-                this.notificationService.showNotification("Permission Denied", "Permission to access the camera was denied. Please allow access and try again.", "error", 0);
+                this.notificationService.showNotification("Permission Denied", "Permission to access the camera was denied. Please allow access and try again.", "error", 10000);
                 return;
             }
 
-            this.notificationService.showNotification("Camera Error", "An error occurred while changing the camera. Please try again.", "error", 0);
+            this.notificationService.showNotification("Camera Error", "An error occurred while changing the camera. Please try again.", "error", 10000);
         }
     }
 
@@ -737,23 +737,23 @@ export class ConferenceWebsocket {
             console.error("changeAudioDevice error", error);
 
             if (error instanceof DOMException && error.name === "OverconstrainedError") {
-                this.notificationService.showNotification("Device Constraints Not Satisfied", "The selected microphone does not meet the required constraints. Please select a different device and try again.", "error", 0);
+                this.notificationService.showNotification("Device Constraints Not Satisfied", "The selected microphone does not meet the required constraints. Please select a different device and try again.", "error", 10000);
                 return;
             }
             else if (error instanceof DOMException && error.name === "NotReadableError") {
-                this.notificationService.showNotification("Device Unavailable", "The microphone is currently in use by another application. Please close other applications and try again.", "error", 0);
+                this.notificationService.showNotification("Device Unavailable", "The microphone is currently in use by another application. Please close other applications and try again.", "error", 10000);
                 return;
             }
             else if (error instanceof DOMException && error.name === "NotFoundError") {
-                this.notificationService.showNotification("Device Not Found", "The selected microphone was not found. Please select a different device and try again.", "error", 0);
+                this.notificationService.showNotification("Device Not Found", "The selected microphone was not found. Please select a different device and try again.", "error", 10000);
                 return;
             }
             else if (error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "SecurityError")) {
-                this.notificationService.showNotification("Permission Denied", "Permission to access the microphone was denied. Please allow access and try again.", "error", 0);
+                this.notificationService.showNotification("Permission Denied", "Permission to access the microphone was denied. Please allow access and try again.", "error", 10000);
                 return;
             }
 
-            this.notificationService.showNotification("Microphone Error", "An error occurred while changing the microphone. Please try again.", "error", 0);
+            this.notificationService.showNotification("Microphone Error", "An error occurred while changing the microphone. Please try again.", "error", 10000);
         }
     }
 
@@ -858,8 +858,27 @@ export class ConferenceWebsocket {
 
             this.socket?.emit("start-screen-share");
         }
-        catch (error) {
+        catch (error: unknown) {
             console.error("toggleScreenShare error", error);
+
+            if (error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "SecurityError")) {
+                this.notificationService.showNotification("Permission Denied", "Permission to access screen sharing was denied. Please allow access and try again.", "error", 10000);
+                return;
+            }
+            else if (error instanceof DOMException && error.name === "NotFoundError") {
+                this.notificationService.showNotification("No Screen Share Source", "No screen or window was found to share. Please try again.", "error", 10000);
+                return;
+            }
+            else if (error instanceof DOMException && error.name === "NotReadableError") {
+                this.notificationService.showNotification("Screen Share Unavailable", "Screen sharing is currently unavailable. Please close other applications that may be using screen sharing and try again.", "error", 10000);
+                return;
+            }
+            else if (error instanceof DOMException && error.name === "OverconstrainedError") {
+                this.notificationService.showNotification("Screen Share Constraints Not Satisfied", "The selected screen or window does not meet the required constraints. Please select a different source and try again.", "error", 10000);
+                return;
+            }
+
+            this.notificationService.showNotification("Screen Share Error", "An error occurred while starting screen sharing. Please try again.", "error", 10000);
         }
     }
 
