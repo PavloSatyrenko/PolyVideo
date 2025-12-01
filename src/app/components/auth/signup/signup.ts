@@ -4,6 +4,7 @@ import { Input } from "@shared/components/input/input";
 import { Title } from "@shared/components/title/title";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "@shared/services/auth.service";
+import { NotificationService } from "@shared/services/notification.service";
 
 @Component({
     selector: "app-auth-signup",
@@ -21,6 +22,7 @@ export class Signup {
     protected hasSubmitted: WritableSignal<boolean> = signal(false);
 
     private authService: AuthService = inject(AuthService);
+    private notificationService: NotificationService = inject(NotificationService);
     private router: Router = inject(Router);
 
     protected isFieldValid(field: string): boolean {
@@ -50,6 +52,13 @@ export class Signup {
         const fields: string[] = ["email", "name", "surname", "password", "confirmPassword"];
         for (const field of fields) {
             if (!this.isFieldValid(field)) {
+                if (field === "confirmPassword") {
+                    this.notificationService.showNotification("Invalid Input", "Passwords do not match.", "error", 5000);
+                }
+                else {
+                    this.notificationService.showNotification("Invalid Input", `Please enter a valid ${field}.`, "error", 5000);
+                }
+
                 return;
             }
         }
@@ -63,8 +72,17 @@ export class Signup {
             const returnUrl: string = this.router.parseUrl(this.router.url).queryParams["redirect"] || "/";
 
             this.router.navigate([returnUrl]);
-        }).catch((error: unknown) => {
-            console.error("Sign Up Error:", error);
+        }).catch((response: unknown) => {
+            console.error("Sign Up Error:", response);
+
+            if (response && typeof response === "object" && "error" in response && "status" in response) {
+                if (response.status === 400) {
+                    this.notificationService.showNotification("Sign Up Failed", "User account with that email already exists.", "error", 5000);
+                    return;
+                }
+            }
+            
+            this.notificationService.showNotification("Sign Up Failed", "An error occurred during sign up. Please try again.", "error", 5000);
         });
     }
 }
