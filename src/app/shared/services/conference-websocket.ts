@@ -424,6 +424,7 @@ export class ConferenceWebsocket {
         this.socket.on("muted-by-owner", () => {
             if (this.isAudioEnabled()) {
                 this.toggleAudio();
+                this.notificationService.showNotification("Muted", "You have been muted by the meeting owner.", "info", 5000);
             }
         });
 
@@ -434,6 +435,7 @@ export class ConferenceWebsocket {
         this.socket.on("video-disabled-by-owner", () => {
             if (this.isVideoEnabled()) {
                 this.toggleVideo();
+                this.notificationService.showNotification("Video Disabled", "Your video has been disabled by the meeting owner.", "info", 5000);
             }
         });
 
@@ -455,6 +457,8 @@ export class ConferenceWebsocket {
 
                 return meeting;
             });
+
+            this.notificationService.showNotification("Ownership Transferred", "Meeting ownership has been transferred to another participant.", "info", 5000);
         });
 
         this.socket.on("chat-message", (message: MessageType) => {
@@ -463,6 +467,7 @@ export class ConferenceWebsocket {
 
         this.socket.on("user-leave", (socketId: string) => {
             this.closePeer(socketId);
+            this.notificationService.showNotification("User Left", `${this.internalRemotePeers()[socketId]?.name || "A user"} has left the meeting.`, "info", 5000);
         });
 
         document.addEventListener("visibilitychange", this.onVisibilityChange);
@@ -497,8 +502,11 @@ export class ConferenceWebsocket {
 
     private onVisibilityChange(): void {
         if (document.visibilityState === "visible") {
-            const isWebRtcDead: boolean = Object.values(this.peerConnections)
-                .every((peerConnection: RTCPeerConnection) => peerConnection.connectionState === "failed");
+            let isWebRtcDead: boolean = false;
+            if (this.peerConnections && Object.keys(this.peerConnections).length) {
+                isWebRtcDead = Object.values(this.peerConnections)
+                    .every((peerConnection: RTCPeerConnection) => peerConnection.connectionState === "failed");
+            }
 
             this.socket.io.reconnection(true);
 
@@ -596,7 +604,7 @@ export class ConferenceWebsocket {
         }
         catch (error: unknown) {
             console.error("getUserMedia error", error);
-            
+
             if (error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "SecurityError")) {
                 this.notificationService.showNotification("Permission Denied", "Permission to access camera and microphone was denied. Please allow access and try again.", "error", 10000);
                 this.router.navigate(["/"]);
@@ -617,7 +625,7 @@ export class ConferenceWebsocket {
                 this.router.navigate(["/"]);
                 return;
             }
-            
+
             this.notificationService.showNotification("Media Error", "An error occurred while accessing media devices. Please reload the page and try again.", "error", 10000);
         }
     }

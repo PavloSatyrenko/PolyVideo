@@ -53,6 +53,7 @@ export class Room {
 
     private popupContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("popup");
 
+    private previousMessages: MessageType[] = [];
     protected messages: Signal<MessageType[]> = computed<MessageType[]>(() => this.conferenceWebSocket.chatMessages());
 
     protected controlsItems: Signal<ConferenceControlsItemType[]> = computed<ConferenceControlsItemType[]>(() => [
@@ -206,6 +207,14 @@ export class Room {
             if (this.participants().length === 1) {
                 this.pinnedParticipantId.set(null);
             }
+        });
+
+        effect(() => {
+            if (this.messages().length > this.previousMessages.length && !this.isChatSidebarOpened()) {
+                this.notificationService.showNotification("New Message", "You have received a new chat message.", "info", 3000);
+            }
+
+            this.previousMessages = this.messages();
         });
     }
 
