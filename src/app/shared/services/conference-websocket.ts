@@ -540,7 +540,7 @@ export class ConferenceWebsocket {
             this.socket = io(environment.serverURL + "/meeting", { withCredentials: true });
         }
 
-        this.hasOwnerJoined.set(false);
+        this.hasOwnerJoined.set(true);
 
         this.socket.emit("request-to-join", { roomCode, name: this.localName() });
 
@@ -552,6 +552,10 @@ export class ConferenceWebsocket {
     }
 
     private setupLobbySocketListeners(roomCode: string): void {
+        this.socket.on("owner-not-found", () => {
+            this.hasOwnerJoined.set(false);
+        });
+        
         this.socket.on("owner-joined", () => {
             this.hasOwnerJoined.set(true);
         });
