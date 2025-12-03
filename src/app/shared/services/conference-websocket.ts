@@ -465,9 +465,9 @@ export class ConferenceWebsocket {
             this.internalChatMessages.update((messages: MessageType[]) => [...messages, message]);
         });
 
-        this.socket.on("user-leave", (socketId: string) => {
-            this.closePeer(socketId);
-            this.notificationService.showNotification("User Left", `${this.internalRemotePeers()[socketId]?.name || "A user"} has left the meeting.`, "info", 5000);
+        this.socket.on("user-leave", (data: { socketId: string, name: string }) => {
+            this.closePeer(data.socketId);
+            this.notificationService.showNotification("User Left", `${data.name || "A user"} has left the meeting.`, "info", 5000);
         });
 
         document.addEventListener("visibilitychange", this.onVisibilityChange.bind(this));
