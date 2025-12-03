@@ -10,7 +10,7 @@
     </div>
 
     <div class="chat__body">
-        <div #messagesContainer class="body__messages">
+        <div #messagesContainer class="body__messages" (scroll)="onChatScroll()">
             @for(message of chat(); track message.id) {
             <div class="chat__message">
                 <span class="message__image-wrapper">

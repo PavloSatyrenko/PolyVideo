@@ -2,7 +2,8 @@
     <div class="chats__list">
         <app-chat-list
             [chats]="chats()"
-            [(selectedChatUserId)]="selectedChatUserId"
+            [selectedChatUserId]="selectedChatUserId()"
+            (selectedChatUserIdChange)="updateSelectedChatUserId($event)"
         ></app-chat-list>
 
         <ui-button

@@ -6,6 +6,7 @@ import { ChatType } from "@shared/types/ChatType";
 import { ChatMessageType } from "@shared/types/ChatMessageType";
 import { openDB, DBSchema, IDBPDatabase } from "idb";
 import { UserType } from "@shared/types/UserType";
+import { NotificationService } from "./notification.service";
 
 interface ChatDB extends DBSchema {
     chats: {
@@ -34,15 +35,18 @@ export class ChatWebsocket {
                 db.createObjectStore("messages");
             }
         }
-    });;
+    });
 
     private internalChats: WritableSignal<ChatType[]> = signal([]);
     public chats: Signal<ChatType[]> = computed(() => this.internalChats());
+
+    public selectedChatUserId: WritableSignal<string | null> = signal<string | null>(null);
 
     private internalChatMessages: WritableSignal<Record<string, ChatMessageType[]>> = signal({});
     public chatMessages: Signal<Record<string, ChatMessageType[]>> = computed(() => this.internalChatMessages());
 
     private chatsService: ChatsService = inject(ChatsService);
+    private notificationService: NotificationService = inject(NotificationService);
 
     public connect(): void {
         this.socket = io(environment.serverURL + "/chat", { withCredentials: true });
@@ -55,6 +59,10 @@ export class ChatWebsocket {
 
         this.socket.on("chat-message", async (data: { message: ChatMessageType, userId: string }) => {
             this.getNewMessage(data.message, data.userId);
+
+            if (this.selectedChatUserId() !== data.userId) {
+                this.notificationService.showNotification("New Message", "You received a new message in workspace chat", "info", 5000);
+            }
         });
     }
 
@@ -100,16 +108,23 @@ export class ChatWebsocket {
         }));
 
         await this.chatsService.getMessages(chatUserId)
-            .then(async (newMessages: ChatMessageType[]) => {
+            .then(async (response: { messages: ChatMessageType[], hasMore: boolean }) => {
                 this.internalChatMessages.update((messages: Record<string, ChatMessageType[]>) => ({
                     ...messages,
-                    [chatUserId]: newMessages,
+                    [chatUserId]: response.messages,
                 }));
 
-                const last20Messages: ChatMessageType[] = newMessages.slice(-20);
+                const last20Messages: ChatMessageType[] = response.messages.slice(-20);
 
                 await indexedDB.put("messages", last20Messages, chatUserId);
             });
+    }
+
+    public async updateChatMessages(newMessages: ChatMessageType[], chatUserId: string): Promise<void> {
+        this.internalChatMessages.update((messages: Record<string, ChatMessageType[]>) => ({
+            ...messages,
+            [chatUserId]: newMessages,
+        }));
     }
 
     public sendMessage(chatUserId: string, content: string): void {

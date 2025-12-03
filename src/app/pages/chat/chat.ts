@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, inject, signal, Signal, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, ElementRef, HostListener, inject, OnDestroy, OnInit, signal, Signal, viewChild, WritableSignal } from "@angular/core";
 import { ChatWebsocket } from "@shared/services/chat-websocket";
 import { List } from "@components/chat/list/list";
 import { ChatType } from "@shared/types/ChatType";
@@ -18,10 +18,10 @@ import { debounceTime, distinctUntilChanged, Observable, switchMap, tap } from "
     templateUrl: "./chat.html",
     styleUrl: "./chat.css"
 })
-export class Chat {
+export class Chat implements OnInit, OnDestroy {
     protected chats: Signal<ChatType[]> = computed(() => this.chatWebSocket.chats());
 
-    protected selectedChatUserId: WritableSignal<string | null> = signal<string | null>(null);
+    protected selectedChatUserId: Signal<string | null> = computed<string | null>(() => this.chatWebSocket.selectedChatUserId());
 
     protected isUsersPopupOpen: WritableSignal<boolean> = signal<boolean>(false);
     private popupContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("popup");
@@ -48,6 +48,14 @@ export class Chat {
             this.users.set(users);
             this.searchUserState.set(users.length === 0 ? "no-results" : "loaded");
         });
+    }
+
+    public ngOnInit(): void {
+        this.chatWebSocket.selectedChatUserId.set(null);
+    }
+
+    public ngOnDestroy(): void {
+        this.chatWebSocket.selectedChatUserId.set(null);
     }
 
     protected openUsersPopup(): void {
@@ -81,6 +89,10 @@ export class Chat {
         this.selectedUserId.set(userId);
     }
 
+    protected updateSelectedChatUserId(userId: string | null): void {
+        this.chatWebSocket.selectedChatUserId.set(userId);
+    }
+
     protected startChatWithSelectedUser(): void {
         const userId: string = this.selectedUserId();
 
@@ -94,7 +106,7 @@ export class Chat {
             this.chatWebSocket.startChatWithUser(user);
         }
 
-        this.selectedChatUserId.set(userId);
+        this.chatWebSocket.selectedChatUserId.set(userId);
         this.closeUsersPopup();
     }
 
