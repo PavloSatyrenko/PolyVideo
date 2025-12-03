@@ -470,7 +470,7 @@ export class ConferenceWebsocket {
             this.notificationService.showNotification("User Left", `${this.internalRemotePeers()[socketId]?.name || "A user"} has left the meeting.`, "info", 5000);
         });
 
-        document.addEventListener("visibilitychange", this.onVisibilityChange);
+        document.addEventListener("visibilitychange", this.onVisibilityChange.bind(this));
 
         this.socket.on("disconnect", () => {
             if (this.socket.active) {
@@ -555,7 +555,7 @@ export class ConferenceWebsocket {
         this.socket.on("owner-not-found", () => {
             this.hasOwnerJoined.set(false);
         });
-        
+
         this.socket.on("owner-joined", () => {
             this.hasOwnerJoined.set(true);
         });
