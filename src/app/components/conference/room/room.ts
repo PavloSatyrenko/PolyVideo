@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, Signal, signal, untracked, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, effect, ElementRef, HostListener, inject, Signal, signal, untracked, viewChild, WritableSignal, AfterViewInit, OnDestroy } from "@angular/core";
 import { Participant } from "@components/conference/participant/participant";
 import { ControlsItem } from "@components/conference/controls-item/controls-item";
 import { ParticipantsSidebar } from "@components/conference/participants-sidebar/participants-sidebar";
@@ -22,7 +22,7 @@ import { NotificationService } from "@shared/services/notification.service";
     templateUrl: "./room.html",
     styleUrl: "./room.css"
 })
-export class Room {
+export class Room implements AfterViewInit, OnDestroy {
     protected meeting: Signal<MeetingType | null> = computed<MeetingType | null>(() => this.conferenceWebSocket.meeting());
 
     protected isParticipantsSidebarOpened: WritableSignal<boolean> = signal<boolean>(false);
@@ -97,14 +97,7 @@ export class Room {
 
     constructor() {
         effect(() => {
-            if (this.participantsWrapper()) {
-                const participantsAmount: number = this.showedParticipant().length;
-
-                const { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, participantsAmount);
-
-                document.documentElement.style.setProperty("--columns", columns.toString());
-                document.documentElement.style.setProperty("--rows", rows.toString());
-            }
+            this.calculateLayout();
         });
 
         effect(() => {
@@ -218,13 +211,42 @@ export class Room {
         });
     }
 
+    private resizeObserver: ResizeObserver | undefined;
+
+    public ngAfterViewInit(): void {
+        const participantsWrapper: ElementRef<HTMLDivElement> | undefined = this.participantsWrapper();
+
+        if (participantsWrapper) {
+            this.resizeObserver = new ResizeObserver(() => {
+                requestAnimationFrame(() => this.calculateLayout());
+            });
+
+            this.resizeObserver.observe(participantsWrapper.nativeElement);
+        }
+    }
+
+    public ngOnDestroy(): void {
+        this.resizeObserver?.disconnect();
+    }
+
+    private calculateLayout(): void {
+        if (this.participantsWrapper()) {
+            const participantsAmount: number = this.showedParticipant().length;
+
+            const { rows, columns } = this.getOptimalParticipantsLayout(this.participantsWrapper()!.nativeElement, participantsAmount);
+
+            document.documentElement.style.setProperty("--columns", columns.toString());
+            document.documentElement.style.setProperty("--rows", rows.toString());
+        }
+    }
+
     private getOptimalParticipantsLayout(wrapperElement: HTMLElement, participantsAmount: number): { rows: number, columns: number } {
         const optimalLayout: { rows: number, columns: number } = {
             rows: 1,
             columns: participantsAmount
         };
 
-        const aspectRatio: number = wrapperElement.clientWidth / wrapperElement.clientHeight;
+        const aspectRatio: number = 16 / 9;
         let minWastedSpace: number = Infinity;
 
         for (let columns = 1; columns <= participantsAmount; columns++) {
@@ -234,7 +256,12 @@ export class Room {
             const cellHeight: number = wrapperElement.clientHeight / rows;
 
             const cellRatio: number = cellWidth / cellHeight;
-            const wastedSpace: number = Math.abs(cellRatio - aspectRatio);
+
+            const ratioDifference: number = Math.abs(cellRatio - aspectRatio);
+
+            const emptyCells: number = (rows * columns) - participantsAmount;
+
+            const wastedSpace: number = (emptyCells * cellWidth * cellHeight) + (ratioDifference * wrapperElement.clientWidth * wrapperElement.clientHeight) * 0.5;
 
             if (wastedSpace < minWastedSpace) {
                 minWastedSpace = wastedSpace;

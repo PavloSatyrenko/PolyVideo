@@ -517,11 +517,11 @@ export class ConferenceWebsocket {
                 else if (isWebRtcDead) {
                     this.socket.io.engine.close();
                 }
-            }
 
-            if (this.internalLocalVideoStream().getVideoTracks().every((track: MediaStreamTrack) => track.readyState === "ended")) {
-                this.socket.io.engine.close();
-                this.getUserMedia();
+                if (this.internalLocalVideoStream().getVideoTracks().every((track: MediaStreamTrack) => track.readyState === "ended")) {
+                    this.socket.io.engine.close();
+                    this.getUserMedia();
+                }
             }
         }
         else if (document.visibilityState === "hidden") {

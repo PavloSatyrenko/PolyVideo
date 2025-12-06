@@ -1,4 +1,4 @@
-<div class="participant" (click)="onPinParticipant()">
+<div #participantWrapper class="participant" (click)="onPinParticipant()">
     @if (participant().isVideoEnabled) {
     <video
         class="participant__video"
@@ -8,7 +8,7 @@
         muted
     ></video>
     } @else {
-    <div class="participant__image-wrapper">
+    <div #imageWrapper class="participant__image-wrapper">
         <img
             src="/user.svg"
             alt="Participant Avatar"
