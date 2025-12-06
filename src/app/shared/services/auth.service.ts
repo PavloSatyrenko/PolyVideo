@@ -44,6 +44,14 @@ export class AuthService {
             });
     }
 
+    public async updateUserName(newUserName: string, newUserSurname: string): Promise<UserType> {
+        return await firstValueFrom(this.httpClient.put<UserType>(environment.serverURL + "/users", { name: newUserName, surname: newUserSurname }))
+            .then((user: UserType) => {
+                this.user.set(user);
+                return user;
+            });
+    }
+
     public async logOut(): Promise<void> {
         return await firstValueFrom(this.httpClient.post<void>(environment.serverURL + "/auth/logout", {}))
             .then(() => {

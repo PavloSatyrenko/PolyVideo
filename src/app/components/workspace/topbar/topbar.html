@@ -3,11 +3,75 @@
         <img src="/logo.svg" alt="PolyVideo Logo" class="logo__image" />
     </div>
 
-    <div class="topbar__user">
+    <div class="topbar__user" (click)="openMenu()">
         <span class="user__name">{{ userName() }}</span>
 
         <span class="user__image-wrapper">
             <img src="/user.svg" alt="User Avatar" class="user__avatar" />
         </span>
+
+        @if (isMenuOpened()) {
+        <div class="menu" #menu (click)="stopPropagation($event)">
+            <div class="menu__item" (click)="openSettingsPopup()">
+                <i class="fa-solid fa-gear menu__icon"></i>
+                <span class="menu__text">Settings</span>
+            </div>
+
+            <div class="menu__item" (click)="logout()">
+                <i class="fa-solid fa-right-from-bracket menu__icon"></i>
+                <span class="menu__text">Log out</span>
+            </div>
+        </div>
+        }
     </div>
 </div>
+
+@if (isSettingsOpened()) {
+<div class="popup">
+    <div class="popup__content" #popup>
+        <ui-title
+            class="popup__text"
+            [title]="'User Settings'"
+            [size]="'small'"
+        ></ui-title>
+
+        <ui-input
+            class="popup__input"
+            [placeholder]="'Name'"
+            [(value)]="newUserName"
+            [theme]="'primary'"
+            [size]="'small'"
+        ></ui-input>
+
+        <ui-input
+            class="popup__input"
+            [placeholder]="'Surname'"
+            [(value)]="newUserSurname"
+            [theme]="'primary'"
+            [size]="'small'"
+        ></ui-input>
+
+        <div class="popup__actions">
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-ban'"
+                [label]="'Cancel'"
+                [size]="'small'"
+                [type]="'primary-line'"
+                [isFullWidth]="true"
+                (click)="closeSettingsPopup()"
+            ></ui-button>
+
+            <ui-button
+                class="popup__button"
+                [icon]="'fa-solid fa-check'"
+                [label]="'Save'"
+                [size]="'small'"
+                [type]="'primary'"
+                [isFullWidth]="true"
+                (click)="saveSettings()"
+            ></ui-button>
+        </div>
+    </div>
+</div>
+}
