@@ -63,6 +63,10 @@ export class Window {
         return message.senderId === this.authService.user()?.id;
     }
 
+    protected deselectChatUser(): void {
+        this.chatWebSocket.selectedChatUserId.set(null);
+    }
+
     protected onChatScroll(): void {
         const threshold: number = 100;
 

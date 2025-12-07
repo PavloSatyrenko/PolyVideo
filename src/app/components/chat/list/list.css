@@ -7,6 +7,20 @@
     border-right: 4px solid var(--background-color);
 }
 
+@media screen and (max-width: 991px) {
+    .list {
+        width: 240px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .list {
+        width: 100%;
+        background-color: var(--surface-color);
+        border-right: 0;
+    }
+}
+
 .list__item {
     display: flex;
     gap: 8px;
@@ -19,6 +33,12 @@
 
 .list__item:hover {
     background-color: var(--surface-hover-color);
+}
+
+@media screen and (max-width: 767px) {
+    .list__item {
+        border-bottom: 3px solid var(--background-color);
+    }
 }
 
 .list__item_selected {
@@ -38,6 +58,13 @@
     transition: border-color 0.3s;
 }
 
+@media screen and (max-width: 767px) and (min-width: 576px) {
+    .item__image-wrapper {
+        width: 52px;
+        height: 52px;
+    }
+}
+
 .item__image {
     width: 80%;
     height: 80%;
@@ -51,6 +78,12 @@
     width: calc(100% - 52px);
 }
 
+@media screen and (max-width: 767px) and (min-width: 576px) {
+    .item__image-item__info {
+        width: calc(100% - 60px);
+    }
+}
+
 .info__name {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -60,12 +93,24 @@
     white-space: nowrap;
 }
 
+@media screen and (max-width: 767px) and (min-width: 576px) {
+    .info__name {
+        font-size: 18px;
+    }
+}
+
 .info__message {
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 14px;
     color: var(--secondary-color);
     white-space: nowrap;
+}
+
+@media screen and (max-width: 767px) and (min-width: 576px) {
+    .info__message {
+        font-size: 16px;
+    }
 }
 
 .chats__no-chats {

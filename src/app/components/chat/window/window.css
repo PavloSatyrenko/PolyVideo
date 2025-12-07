@@ -11,6 +11,27 @@
     border-bottom: 3px solid var(--background-color);
 }
 
+@media screen and (max-width: 767px) {
+    .chat__header {
+        gap: 12px;
+    }
+}
+
+.header__back {
+    display: none;
+}
+
+@media screen and (max-width: 767px) {
+    .header__back {
+        display: flex;
+        height: 100%;
+    }
+
+    :host ::ng-deep .header__back .button {
+        height: 100%;
+    }
+}
+
 .chat__person {
     display: flex;
     gap: 12px;
@@ -72,6 +93,12 @@
     overflow-y: auto;
 }
 
+@media screen and (max-width: 991px) {
+    .body__messages {
+        padding: 12px 8px;
+    }
+}
+
 .chat__message {
     display: flex;
     gap: 10px;
@@ -103,6 +130,15 @@
     color: var(--primary-text-color);
     background-color: var(--element-color);
     border-radius: 8px;
+}
+
+@media screen and (max-width: 991px) {
+    .message__content {
+        width: 100%;
+        min-width: unset;
+        max-width: unset;
+        padding: 10px;
+    }
 }
 
 .message__content_own {

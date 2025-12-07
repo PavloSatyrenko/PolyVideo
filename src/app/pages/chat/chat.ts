@@ -11,6 +11,7 @@ import { NgClass } from "@angular/common";
 import { Input } from "@shared/components/input/input";
 import { toObservable } from "@angular/core/rxjs-interop";
 import { debounceTime, distinctUntilChanged, Observable, switchMap, tap } from "rxjs";
+import { SizeService } from "@shared/services/size.service";
 
 @Component({
     selector: "app-chat",
@@ -35,6 +36,7 @@ export class Chat implements OnInit, OnDestroy {
 
     private chatWebSocket: ChatWebsocket = inject(ChatWebsocket);
     private chatsService: ChatsService = inject(ChatsService);
+    protected sizeService: SizeService = inject(SizeService);
 
     constructor() {
         const searchQueryObservable: Observable<string> = toObservable(this.searchUserQuery);

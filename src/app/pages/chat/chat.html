@@ -1,4 +1,5 @@
 <div class="chats">
+    @if ((sizeService.width() <= 767 && !selectedChatUserId()) || sizeService.width() > 767) {
     <div class="chats__list">
         <app-chat-list
             [chats]="chats()"
@@ -14,8 +15,7 @@
             (click)="openUsersPopup()"
         ></ui-button>
     </div>
-
-    @if (selectedChatUserId()) {
+    } @if (selectedChatUserId()) {
     <div class="chats__window">
         <app-chat-window [chatUserId]="selectedChatUserId()!"></app-chat-window>
     </div>

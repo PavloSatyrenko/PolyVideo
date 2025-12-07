@@ -7,6 +7,12 @@
     position: relative;
 }
 
+@media screen and (max-width: 767px) {
+    .chats__list {
+        width: 100%;
+    }
+}
+
 .chats__button {
     position: absolute;
     right: 12px;

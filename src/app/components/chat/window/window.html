@@ -1,5 +1,13 @@
 <div class="chat">
     <div class="chat__header">
+        <ui-button
+            class="header__back"
+            [icon]="'fa-solid fa-arrow-left'"
+            [size]="'large'"
+            [type]="'primary-line'"
+            (click)="deselectChatUser()"
+        ></ui-button>
+
         <div class="chat__person">
             <span class="person__image-wrapper">
                 <img src="/user.svg" alt="User Avatar" class="person__image" />
@@ -10,7 +18,11 @@
     </div>
 
     <div class="chat__body">
-        <div #messagesContainer class="body__messages" (scroll)="onChatScroll()">
+        <div
+            #messagesContainer
+            class="body__messages"
+            (scroll)="onChatScroll()"
+        >
             @for(message of chat(); track message.id) {
             <div class="chat__message">
                 <span class="message__image-wrapper">

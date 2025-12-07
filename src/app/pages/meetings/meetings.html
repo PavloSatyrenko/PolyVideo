@@ -8,7 +8,7 @@
             [icon]="'fa-solid fa-plus'"
             [size]="'large'"
             [type]="'primary'"
-            [isFullWidth]="sizeService.width() < 767"
+            [isFullWidth]="sizeService.width() <= 767"
             (click)="createMeeting()"
         ></ui-button>
 
@@ -17,11 +17,11 @@
         <div class="joining__join">
             <ui-input
                 class="join__input"
-                [placeholder]="sizeService.width() < 575 ? 'Code' : 'Enter the meeting code...'"
+                [placeholder]="sizeService.width() <= 575 ? 'Code' : 'Enter the meeting code...'"
                 [(value)]="meetingCodeValue"
                 [size]="'large'"
                 [theme]="'primary'"
-                [isFullWidth]="sizeService.width() < 767"
+                [isFullWidth]="sizeService.width() <= 767"
                 (keyup.enter)="joinMeeting()"
             ></ui-input>
 
