@@ -3,6 +3,12 @@
         <img src="/logo.svg" alt="PolyVideo Logo" class="logo__image" />
     </div>
 
+    <div class="topbar__sidebar">
+        <button class="sidebar__expand" (click)="toggleSidebar()">
+            <i class="expand__icon fa-solid fa-list"></i>
+        </button>
+    </div>
+
     <div class="topbar__user" (click)="openMenu()">
         <span class="user__name">{{ userName() }}</span>
 

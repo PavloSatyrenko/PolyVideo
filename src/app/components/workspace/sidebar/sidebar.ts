@@ -1,4 +1,4 @@
-import { Component, signal, WritableSignal } from "@angular/core";
+import { Component, model, ModelSignal } from "@angular/core";
 import { RouterModule } from "@angular/router";
 import { SidebarItemType } from "@shared/types/SidebarItemType";
 import { SidebarItem } from "@components/workspace/sidebar-item/sidebar-item";
@@ -10,7 +10,7 @@ import { SidebarItem } from "@components/workspace/sidebar-item/sidebar-item";
     styleUrl: "./sidebar.css"
 })
 export class Sidebar {
-    protected isSidebarExpanded: WritableSignal<boolean> = signal<boolean>(false);
+    public isSidebarOpened: ModelSignal<boolean> = model<boolean>(false);
 
     protected sidebarItems: SidebarItemType[] = [
         { link: "meetings", label: "Meetings", icon: "fa-solid fa-video", isNotified: false },
@@ -18,6 +18,6 @@ export class Sidebar {
     ];
 
     toggleSidebarExpansion(): void {
-        this.isSidebarExpanded.update((value: boolean) => !value);
+        this.isSidebarOpened.update((value: boolean) => !value);
     }
 }

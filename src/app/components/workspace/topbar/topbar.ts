@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, inject, signal, Signal, viewChild, WritableSignal } from "@angular/core";
+import { Component, computed, ElementRef, HostListener, inject, output, OutputEmitterRef, signal, Signal, viewChild, WritableSignal } from "@angular/core";
 import { Router } from "@angular/router";
 import { AuthService } from "@shared/services/auth.service";
 import { Title } from "@shared/components/title/title";
@@ -26,8 +26,14 @@ export class Topbar {
     protected newUserName: WritableSignal<string> = signal(""); 
     protected newUserSurname: WritableSignal<string> = signal("");
 
+    public onSidebarToggle: OutputEmitterRef<void> = output<void>();
+
     private authService: AuthService = inject(AuthService);
     private router: Router = inject(Router);
+
+    protected toggleSidebar(): void {
+        this.onSidebarToggle.emit();
+    }
 
     protected openMenu(): void {
         this.isMenuOpened.set(true);

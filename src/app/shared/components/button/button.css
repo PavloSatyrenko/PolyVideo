@@ -29,6 +29,22 @@
     border-radius: 22px;
 }
 
+@media screen and (max-width: 767px) {
+    .button_size_small {
+        gap: 4px;
+        height: 32px;
+        padding: 9px 12px;
+        font-size: 14px;
+    }
+
+    .button_size_large {
+        gap: 8px;
+        height: 40px;
+        padding: 11px 28px;
+        font-size: 18px;
+    }
+}
+
 .button_width_full {
     width: 100%;
 }
@@ -44,6 +60,16 @@
 
 .button_size_large.button_with_icon:not(.button_with_label) {
     padding: 13px;
+}
+
+@media screen and (max-width: 767px) {
+    .button_size_small.button_with_icon:not(.button_with_label) {
+        padding: 9px;
+    }
+
+    .button_size_large.button_with_icon:not(.button_with_label) {
+        padding: 11px;
+    }
 }
 
 .button_theme_primary {

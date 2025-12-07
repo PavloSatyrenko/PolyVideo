@@ -6,7 +6,6 @@
     height: var(--topbar-height);
     padding: 8px;
     background-color: var(--background-color);
-    border-radius: 16px;
 }
 
 .topbar__logo {
@@ -15,6 +14,43 @@
     overflow: hidden;
     background-color: var(--surface-color);
     border-radius: 8px;
+}
+
+.topbar__sidebar {
+    display: none;
+}
+
+@media screen and (max-width: 575px) {
+    .topbar__logo {
+        display: none;
+    }
+
+    .topbar__sidebar {
+        display: block;
+    }
+
+    .sidebar__expand {
+        height: 100%;
+        color: var(--secondary-color);
+        cursor: pointer;
+        background-color: var(--surface-color);
+        border: none;
+        border-radius: 16px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar__expand:hover {
+        background-color: var(--surface-hover-color);
+    }
+
+    .expand__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        aspect-ratio: 1;
+        font-size: 20px;
+    }
 }
 
 .logo__image {
@@ -122,4 +158,3 @@
 .popup__button {
     flex-grow: 1;
 }
-

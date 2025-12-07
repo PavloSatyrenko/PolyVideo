@@ -1,4 +1,4 @@
-<div class="sidebar" [class.sidebar_expanded]="isSidebarExpanded()">
+<div class="sidebar" [class.sidebar_expanded]="isSidebarOpened()">
     <button class="sidebar__expand" (click)="toggleSidebarExpansion()">
         <i class="expand__icon fa-solid fa-arrows-left-right"></i>
     </button>
@@ -10,7 +10,7 @@
             [label]="sidebarItem.label"
             [icon]="sidebarItem.icon"
             [isNotified]="sidebarItem.isNotified"
-            [isExpanded]="isSidebarExpanded()"
+            [isExpanded]="isSidebarOpened()"
         ></app-workspace-sidebar-item>
         }
     </nav>

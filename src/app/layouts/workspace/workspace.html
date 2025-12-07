@@ -1,10 +1,14 @@
 <div class="workspace">
     <div class="workspace__topbar">
-        <app-workspace-topbar></app-workspace-topbar>
+        <app-workspace-topbar
+            (onSidebarToggle)="toggleSidebar()"
+        ></app-workspace-topbar>
     </div>
 
     <div class="workspace__layout">
-        <app-workspace-sidebar></app-workspace-sidebar>
+        <app-workspace-sidebar
+            [(isSidebarOpened)]="isSidebarOpened"
+        ></app-workspace-sidebar>
 
         <main class="workspace__main">
             <router-outlet></router-outlet>

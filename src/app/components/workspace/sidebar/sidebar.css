@@ -1,4 +1,5 @@
 .sidebar {
+    z-index: var(--z-index-1);
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -7,12 +8,41 @@
     height: 100%;
     padding: 0 8px 8px;
     background-color: var(--background-color);
-    border-radius: 16px;
-    transition: width 0.3s;
+    transition: width 0.3s, border-right-color 0.3s;
+}
+
+@media screen and (max-width: 991px) {
+    .sidebar {
+        position: absolute;
+        border-right: 2px solid transparent;
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .sidebar {
+        visibility: hidden;
+        width: var(--sidebar-expanded-width);
+        translate: -100%;
+        transition: border-right-color 0.3s, visibility 0s 0.3s, translate 0.3s;
+    }
 }
 
 .sidebar_expanded {
     width: var(--sidebar-expanded-width);
+}
+
+@media screen and (max-width: 991px) {
+    .sidebar_expanded {
+        border-right-color: var(--surface-color);
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .sidebar_expanded {
+        visibility: visible;
+        translate: 0;
+        transition: border-right-color 0.3s, visibility 0s, translate 0.3s;
+    }
 }
 
 .sidebar__list {
@@ -40,6 +70,12 @@
 
 .sidebar__expand:hover {
     background-color: var(--surface-hover-color);
+}
+
+@media screen and (max-width: 575px) {
+    .sidebar__expand {
+        display: none;
+    }
 }
 
 .expand__icon {

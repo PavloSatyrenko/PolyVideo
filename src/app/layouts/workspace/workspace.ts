@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { Component, inject, OnInit, signal, WritableSignal } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { Sidebar } from "@components/workspace/sidebar/sidebar";
 import { Topbar } from "@components/workspace/topbar/topbar";
@@ -12,9 +12,15 @@ import { Notification } from "@shared/components/notification/notification";
     styleUrl: "./workspace.css"
 })
 export class Workspace implements OnInit { 
+    protected isSidebarOpened: WritableSignal<boolean> = signal(false);
+
     private chatWebSocket: ChatWebsocket = inject(ChatWebsocket);
 
     public ngOnInit(): void {
         this.chatWebSocket.connect();
+    }
+
+    protected toggleSidebar(): void {
+        this.isSidebarOpened.update((value: boolean) => !value);
     }
 }

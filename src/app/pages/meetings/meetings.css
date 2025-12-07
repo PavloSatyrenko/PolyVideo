@@ -4,16 +4,66 @@
     gap: 32px;
 }
 
+@media screen and (max-width: 767px) {
+    .meetings {
+        gap: 20px;
+    }
+}
+
 .meetings__joining {
     display: flex;
     gap: 16px;
     align-items: center;
 }
 
+@media screen and (max-width: 991px) {
+    .meetings__joining {
+        gap: 12px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .meetings__joining {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .joining__create {
+        width: 100%;
+    }
+}
+
+.joining__join {
+    display: flex;
+    gap: 16px;
+}
+
+@media screen and (max-width: 991px) {
+    .joining__join {
+        gap: 12px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .joining__join {
+        width: 100%;
+    }
+
+    .join__input {
+        width: 100%;
+    }
+}
+
 .joining__text {
     font-size: 20px;
     font-weight: 700;
     color: var(--primary-text-color);
+}
+
+@media screen and (max-width: 767px) {
+    .joining__text {
+        display: none;
+    }
 }
 
 .meetings__recent,
@@ -28,6 +78,30 @@
     gap: 24px;
 }
 
+@media screen and (max-width: 991px) {
+    .meetings__list {
+        gap: 16px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .meetings__list {
+        flex-direction: column;
+    }
+}
+
 .list__item {
-    flex-basis: calc(33% - 16px * 2 / 3);
+    flex-basis: calc(100% / 3 - 24px * 2 / 3);
+}
+
+@media screen and (max-width: 991px) {
+    .list__item {
+        flex-basis: calc(100% / 3 - 16px * 2 / 3);
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .list__item {
+        flex-basis: 100%;
+    }
 }

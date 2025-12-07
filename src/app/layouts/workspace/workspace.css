@@ -5,10 +5,6 @@
     height: 100%;
 }
 
-.workspace__sidebar {
-    flex-shrink: 0;
-}
-
 .workspace__layout {
     display: flex;
     flex-direction: row;
@@ -24,4 +20,17 @@
     overflow: auto;
     background-color: var(--surface-color);
     border-radius: 16px;
+}
+
+@media screen and (max-width: 991px) {
+    .workspace__main {
+        margin-left: var(--sidebar-width);
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .workspace__main {
+        width: calc(100% - 16px);
+        margin-left: 8px;
+    }
 }

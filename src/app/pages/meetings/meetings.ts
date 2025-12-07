@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Item } from "@components/meetings/item/item";
 import { MeetingsService } from "@shared/services/meetings.service";
 import { MeetingType } from "@shared/types/MeetingType";
+import { SizeService } from "@shared/services/size.service";
 
 @Component({
     selector: "app-page-meetings",
@@ -29,6 +30,7 @@ export class Meetings implements OnInit {
     private router: Router = inject(Router);
     private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
     private meetingsService: MeetingsService = inject(MeetingsService);
+    protected sizeService: SizeService = inject(SizeService);
 
     ngOnInit(): void {
         this.loadRecentMeetings();
