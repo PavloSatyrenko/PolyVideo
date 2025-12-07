@@ -470,7 +470,7 @@ export class ConferenceWebsocket {
             this.notificationService.showNotification("User Left", `${data.name || "A user"} has left the meeting.`, "info", 5000);
         });
 
-        document.addEventListener("visibilitychange", this.onVisibilityChange.bind(this));
+        document.addEventListener("visibilitychange", this.onVisibilityChange);
 
         this.socket.on("disconnect", () => {
             if (this.socket.active) {
@@ -500,7 +500,7 @@ export class ConferenceWebsocket {
         });
     }
 
-    private onVisibilityChange(): void {
+    private onVisibilityChange = (): void => {
         if (document.visibilityState === "visible") {
             let isWebRtcDead: boolean = false;
             if (this.peerConnections && Object.keys(this.peerConnections).length) {

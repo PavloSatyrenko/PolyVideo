@@ -67,6 +67,11 @@ export class Conference implements OnInit, OnDestroy {
             return;
         }
 
+        if (!this.conferenceWebSocket.meeting()?.isStarted) {
+            this.notificationService.showNotification("Conference Not Started", "The conference has not started yet. Please wait.", "info", 5000);
+            return;
+        }
+
         if (!this.conferenceWebSocket.meeting()?.isWaitingRoom) {
             this.conferenceWebSocket.connect(this.conferenceCode());
         }
