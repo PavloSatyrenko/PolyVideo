@@ -25,7 +25,7 @@
         <div class="sidebar__send">
             <ui-input
                 class="send__input"
-                [placeholder]="'Type your message...'"
+                [placeholder]="sizeService.width() <= 991 ? 'Message' : 'Type your message...'"
                 [(value)]="newMessageContent"
                 [size]="'small'"
                 [theme]="'primary'"

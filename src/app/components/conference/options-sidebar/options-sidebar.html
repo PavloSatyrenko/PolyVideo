@@ -35,7 +35,7 @@
 
     <ui-button
         [label]="'Save Changes'"
-        [size]="'large'"
+        [size]="sizeService.width() <= 991 ? 'small' : 'large'"
         [type]="'primary'"
         [isFullWidth]="true"
         (click)="saveOptions()"

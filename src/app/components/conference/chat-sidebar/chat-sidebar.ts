@@ -4,6 +4,7 @@ import { MessageType } from "@shared/types/MessageType";
 import { Input } from "@shared/components/input/input";
 import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { Button } from "@shared/components/button/button";
+import { SizeService } from "@shared/services/size.service";
 
 @Component({
     selector: "app-conference-chat-sidebar",
@@ -17,6 +18,7 @@ export class ChatSidebar {
     protected newMessageContent: WritableSignal<string> = signal<string>("");
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
+    protected sizeService: SizeService = inject(SizeService);
 
     protected sendMessage(): void {
         const content: string = this.newMessageContent().trim();

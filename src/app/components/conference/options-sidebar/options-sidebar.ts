@@ -9,6 +9,7 @@ import { ConferenceWebsocket } from "@shared/services/conference-websocket";
 import { Select } from "@shared/components/select/select";
 import { DeviceLabelPipe } from "@shared/pipes/device-label-pipe";
 import { AuthService } from "@shared/services/auth.service";
+import { SizeService } from "@shared/services/size.service";
 
 @Component({
     selector: "app-conference-options-sidebar",
@@ -42,6 +43,7 @@ export class OptionsSidebar {
     private meetingsService: MeetingsService = inject(MeetingsService);
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
+    protected sizeService: SizeService = inject(SizeService);
 
     constructor() {
         effect(() => {

@@ -15,6 +15,7 @@ import { Button } from "@shared/components/button/button";
 import { Title } from "@shared/components/title/title";
 import { AuthService } from "@shared/services/auth.service";
 import { NotificationService } from "@shared/services/notification.service";
+import { SizeService } from "@shared/services/size.service";
 
 @Component({
     selector: "app-conference-room",
@@ -56,19 +57,64 @@ export class Room implements AfterViewInit, OnDestroy {
     private previousMessages: MessageType[] = [];
     protected messages: Signal<MessageType[]> = computed<MessageType[]>(() => this.conferenceWebSocket.chatMessages());
 
-    protected controlsItems: Signal<ConferenceControlsItemType[]> = computed<ConferenceControlsItemType[]>(() => [
+    protected controlsItems: Signal<ConferenceControlsItemType[]> = computed<ConferenceControlsItemType[]>(() => {
+        if (this.sizeService.width() > 575) {
+            return [{
+                type: "audio",
+                isEnabled: this.conferenceWebSocket.isAudioEnabled()
+            },
+            {
+                type: "video",
+                isEnabled: this.conferenceWebSocket.isVideoEnabled()
+            },
+            ...((typeof navigator.mediaDevices?.getDisplayMedia === "function") ? [{
+                type: "screen" as const,
+                isEnabled: this.conferenceWebSocket.isScreenSharing()
+            }] : []),
+            {
+                type: "participants",
+                isEnabled: this.isParticipantsSidebarOpened()
+            },
+            {
+                type: "chat",
+                isEnabled: this.isChatSidebarOpened()
+            },
+            {
+                type: "hand",
+                isEnabled: this.conferenceWebSocket.isHandUp()
+            },
+            {
+                type: "options",
+                isEnabled: this.isOptionsSidebarOpened()
+            },
+            {
+                type: "leave",
+            }];
+        }
+        else {
+            return [{
+                type: "audio",
+                isEnabled: this.conferenceWebSocket.isAudioEnabled()
+            },
+            {
+                type: "video",
+                isEnabled: this.conferenceWebSocket.isVideoEnabled()
+            },
+            {
+                type: "menu",
+                isEnabled: this.isControlsMenuOpened()
+            },
+            {
+                type: "leave",
+            }];
+        }
+    });
+
+    protected menuControlsItems: Signal<ConferenceControlsItemType[]> = computed<ConferenceControlsItemType[]>(() => [
         {
-            type: "audio",
-            isEnabled: this.conferenceWebSocket.isAudioEnabled()
-        },
-        {
-            type: "video",
-            isEnabled: this.conferenceWebSocket.isVideoEnabled()
-        },
-        ...((typeof navigator.mediaDevices?.getDisplayMedia === "function") ? [{
-            type: "screen" as const,
+            type: "screen",
             isEnabled: this.conferenceWebSocket.isScreenSharing()
-        }] : []),
+        },
         {
             type: "participants",
             isEnabled: this.isParticipantsSidebarOpened()
@@ -82,18 +128,20 @@ export class Room implements AfterViewInit, OnDestroy {
             isEnabled: this.conferenceWebSocket.isHandUp()
         },
         {
-            type: "other",
+            type: "options",
             isEnabled: this.isOptionsSidebarOpened()
-        },
-        {
-            type: "leave",
         }
     ]);
+
+    protected isControlsMenuOpened: WritableSignal<boolean> = signal<boolean>(false);
+
+    protected menuContent: Signal<ElementRef<HTMLDivElement> | undefined> = viewChild<ElementRef<HTMLDivElement> | undefined>("menuContent");
 
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
     private notificationService: NotificationService = inject(NotificationService);
     private router: Router = inject(Router);
+    protected sizeService: SizeService = inject(SizeService);
 
     constructor() {
         effect(() => {
@@ -304,7 +352,7 @@ export class Room implements AfterViewInit, OnDestroy {
                         this.conferenceWebSocket.toggleScreenShare();
                     }
                     else {
-                        this.notificationService.showNotification("Not Allowed", "Screen sharing is not permitted in this meeting.", "info", 5000);
+                        this.notificationService.showNotification("Not Allowed", "Screen sharing is not allowed in this meeting.", "info", 5000);
                     }
                 }
                 break;
@@ -321,16 +369,23 @@ export class Room implements AfterViewInit, OnDestroy {
             case "hand":
                 this.conferenceWebSocket.toggleHand();
                 break;
-            case "other":
+            case "options":
                 this.isOptionsSidebarOpened.set(!this.isOptionsSidebarOpened());
                 this.isParticipantsSidebarOpened.set(false);
                 this.isChatSidebarOpened.set(false);
+                break;
+            case "menu":
+                this.isControlsMenuOpened.set(!this.isControlsMenuOpened());
                 break;
             case "leave":
                 this.conferenceWebSocket.leave();
                 this.router.navigate(["/"]);
                 break;
         }
+    }
+
+    protected stopPropagation(event: MouseEvent): void {
+        event.stopPropagation();
     }
 
     protected enableVideo(): void {
@@ -369,35 +424,49 @@ export class Room implements AfterViewInit, OnDestroy {
         this.conferenceWebSocket.declineRequestToJoin(request.socketId);
     }
 
+    protected closeControlsMenu(): void {
+        this.isControlsMenuOpened.set(false);
+    }
+
     @HostListener("document:click", ["$event"])
     protected onBackdropClick(event: MouseEvent): void {
-        if (!this.popupContent()) {
+        if (!this.popupContent() && !this.menuContent()) {
             return;
         }
 
         const targetNode: Node | null = event.target as Node | null;
 
-        if (targetNode && this.popupContent()?.nativeElement.contains(targetNode)) {
-            return;
+        if (this.isRequestedUnmuteByOwner() || this.isRequestedEnableVideoByOwner() || this.isRequestToJoinPopupVisible()) {
+            if (targetNode && this.popupContent()?.nativeElement.contains(targetNode)) {
+                return;
+            }
+
+            if (this.isRequestedUnmuteByOwner()) {
+                this.declineUnmute();
+                return;
+            }
+
+            if (this.isRequestedEnableVideoByOwner()) {
+                this.declineEnableVideo();
+            }
+
+            if (this.isRequestToJoinPopupVisible()) {
+                this.declineRequestToJoin();
+            }
         }
 
-        if (this.isRequestedUnmuteByOwner()) {
-            this.declineUnmute();
-            return;
-        }
+        if (this.isControlsMenuOpened()) {
+            if (targetNode && this.menuContent()?.nativeElement.contains(targetNode)) {
+                return;
+            }
 
-        if (this.isRequestedEnableVideoByOwner()) {
-            this.declineEnableVideo();
-        }
-
-        if (this.isRequestToJoinPopupVisible()) {
-            this.declineRequestToJoin();
+            this.closeControlsMenu();
         }
     }
 
     @HostListener("document:keydown", ["$event"])
     protected onDocumentKeyDown(event: KeyboardEvent): void {
-        if (!this.popupContent()) {
+        if (!this.popupContent() && !this.menuContent()) {
             return;
         }
 
@@ -411,10 +480,17 @@ export class Room implements AfterViewInit, OnDestroy {
 
             if (this.isRequestedEnableVideoByOwner()) {
                 this.declineEnableVideo();
+                return;
             }
 
             if (this.isRequestToJoinPopupVisible()) {
                 this.declineRequestToJoin();
+                return;
+            }
+
+            if (this.isControlsMenuOpened()) {
+                this.closeControlsMenu();
+                return;
             }
         }
     }

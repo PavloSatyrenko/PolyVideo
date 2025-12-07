@@ -45,7 +45,17 @@
             [item]="item"
             (click)="handleControlItemClick($event)"
         ></app-conference-controls-item>
-        }
+
+        @if (item.type === "menu" && isControlsMenuOpened()) {
+        <div class="menu" #menuContent (click)="stopPropagation($event)">
+            @for(item of menuControlsItems(); track item.type) {
+            <app-conference-controls-item
+                [item]="item"
+                (click)="handleControlItemClick($event)"
+            ></app-conference-controls-item>
+            }
+        </div>
+        } }
     </div>
 </section>
 

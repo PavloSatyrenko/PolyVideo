@@ -26,10 +26,15 @@
         [ngClass]="{'control__icon_active': item().isEnabled}"
         class="control__icon fa-solid fa-hand"
     ></i>
-    } @else if (item().type === "other") {
+    } @else if (item().type === "options") {
     <i
         [ngClass]="{'control__icon_active': item().isEnabled}"
         class="control__icon fa-solid fa-ellipsis-h"
+    ></i>
+    } @else if (item().type === "menu") {
+    <i
+        [ngClass]="{'control__icon_active': item().isEnabled}"
+        class="control__icon fa-solid fa-chevron-up"
     ></i>
     } @else if (item().type === "leave") {
     <i class="control__icon fa-solid fa-sign-out-alt"></i>
