@@ -40,6 +40,7 @@
     gap: 24px;
     width: 600px;
     padding: 24px;
+    margin: 16px;
     background-color: var(--surface-color);
     border-radius: 16px;
 }
@@ -71,6 +72,12 @@
     transition: background-color 0.3s;
 }
 
+@media screen and (max-width: 767px) {
+    .list__item {
+        padding: 8px 12px;
+    }
+}
+
 .list__item_selected {
     background-color: var(--surface-hover-color);
 }
@@ -86,6 +93,13 @@
     border: 1px solid var(--background-color);
     border-radius: 50%;
     transition: border-color 0.3s;
+}
+
+@media screen and (max-width: 767px) {
+    .item__image-wrapper {
+        width: 36px;
+        height: 36px;
+    }
 }
 
 .item__image {

@@ -14,6 +14,7 @@
 @media screen and (max-width: 991px) {
     .sidebar {
         position: absolute;
+        height: calc(100% - var(--header-height));
         border-right: 2px solid transparent;
     }
 }

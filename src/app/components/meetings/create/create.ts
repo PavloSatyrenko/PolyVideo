@@ -8,6 +8,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { MeetingsService } from "@shared/services/meetings.service";
 import { Router } from "@angular/router";
 import { MeetingType } from "@shared/types/MeetingType";
+import { SizeService } from "@shared/services/size.service";
 
 dayjs.extend(customParseFormat);
 
@@ -66,6 +67,7 @@ export class Create {
 
     private meetingsService: MeetingsService = inject(MeetingsService);
     private router: Router = inject(Router);
+    protected sizeService: SizeService = inject(SizeService);
 
     protected isFieldValid(field: string): boolean {
         if (!this.hasSubmitted()) {

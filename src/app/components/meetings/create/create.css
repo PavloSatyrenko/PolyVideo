@@ -17,10 +17,19 @@
     overflow: hidden;
 }
 
+@media screen and (max-width: 575px) {
+    .meetings__date {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
 .date__input {
     width: calc(100% / 5 - 12px * 4 / 5);
 }
 
-:host ::ng-deep .date__input .input {
-    width: 100%;
+@media screen and (max-width: 575px) {
+    .date__input {
+        width: 100%;
+    }
 }
