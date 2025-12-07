@@ -42,6 +42,14 @@ export class Window {
     constructor() {
         effect(async () => {
             await this.chatWebSocket.getMessagesForChat(this.chatUserId());
+
+            this.isLoadingMoreMessage = true;
+            this.isMessagesLoaded = false;
+
+            setTimeout(() => {
+                this.messagesContainer().nativeElement.scrollTop = this.messagesContainer().nativeElement.scrollHeight;
+                this.isMessagesLoaded = true;
+            }, 0);
         });
 
         effect(() => {

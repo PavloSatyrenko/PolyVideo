@@ -92,6 +92,7 @@ export class ChatWebsocket {
 
         const newChat: ChatType = {
             user: user,
+            sentAt: new Date().toISOString(),
         };
 
         this.internalChats.update((chats: ChatType[]) => [newChat, ...chats]);
@@ -153,15 +154,17 @@ export class ChatWebsocket {
                 user: chat.user,
             };
 
-            this.internalChats.update((chats: ChatType[]) => {
-                return chats.map((chat: ChatType) => {
-                    if (chat.user.id === chatUserId) {
-                        return updatedChat;
-                    }
+            const newChats: ChatType[] = this.internalChats().map((chat: ChatType) => {
+                if (chat.user.id === chatUserId) {
+                    return updatedChat;
+                }
 
-                    return chat;
-                });
+                return chat;
             });
+
+            newChats.sort((a: ChatType, b: ChatType) => new Date(b.sentAt!).getTime() - new Date(a.sentAt!).getTime());
+
+            this.internalChats.set(newChats);
 
             await indexedDB.put("chats", updatedChat, chatUserId);
         }
