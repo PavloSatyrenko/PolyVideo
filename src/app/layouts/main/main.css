@@ -81,30 +81,81 @@
     height: 700px;
 }
 
+@media screen and (max-width: 991px) {
+    .content__container {
+        height: unset;
+    }
+}
+
 .content__image {
     width: 700px;
     height: 100%;
     object-fit: contain;
 }
 
+@media screen and (max-width: 991px) {
+    .content__image {
+        display: none;
+    }
+}
+
 .content__info {
     display: flex;
     flex-grow: 1;
     flex-direction: column;
-    gap: 16px;
+    gap: 64px;
     justify-content: space-between;
     padding-top: 64px;
     padding-bottom: 64px;
 }
 
+@media screen and (max-width: 991px) {
+    .content__info {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .content__info {
+        gap: 32px;
+    }
+}
+
 .info__main {
+    display: flex;
+}
+
+.main__text {
     display: flex;
     flex-direction: column;
     gap: 48px;
 }
 
+@media screen and (max-width: 767px) {
+    .main__text {
+        gap: 24px;
+    }
+}
+
 :host ::ng-deep .main__title .title {
     line-height: 1.2;
+}
+
+.main__image-wrapper {
+    display: none;
+}
+
+@media screen and (max-width: 991px) and (min-width: 768px) {
+    .main__image-wrapper {
+        display: block;
+    }
+
+    .main__image {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
 }
 
 .info__join {
@@ -116,4 +167,10 @@
 .join__options {
     display: flex;
     gap: 16px;
+}
+
+@media screen and (max-width: 767px) {
+    .options__input {
+        width: 100%;
+    }
 }

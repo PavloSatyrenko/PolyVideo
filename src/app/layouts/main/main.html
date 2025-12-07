@@ -2,11 +2,7 @@
     <div class="layout__header">
         <div class="header__container container">
             <span class="header__logo">
-                <img
-                    src="/logo.svg"
-                    alt="PolyVideo Logo"
-                    class="logo__image"
-                />
+                <img src="/logo.svg" alt="PolyVideo Logo" class="logo__image" />
             </span>
 
             @if (isUserAuthorized()) {
@@ -45,19 +41,30 @@
         <div class="content__container container">
             <div class="content__info">
                 <div class="info__main">
-                    <ui-title
-                        class="main__title"
-                        [title]="'Platform for organizing video conferences'"
-                        [size]="'large'"
-                    ></ui-title>
+                    <div class="main__text">
+                        <ui-title
+                            class="main__title"
+                            [title]="'Platform for organizing video conferences'"
+                            [size]="'large'"
+                        ></ui-title>
 
-                    <ui-button
-                        [label]="'Try it now'"
-                        [icon]="'fa-solid fa-circle-play'"
-                        [size]="'large'"
-                        [type]="'primary'"
-                        [routerLink]="['/workspace']"
-                    ></ui-button>
+                        <ui-button
+                            [label]="'Try it now'"
+                            [icon]="'fa-solid fa-circle-play'"
+                            [size]="'large'"
+                            [type]="'primary'"
+                            [routerLink]="['/workspace']"
+                            [isFullWidth]="sizeService.width() <= 767"
+                        ></ui-button>
+                    </div>
+
+                    <div class="main__image-wrapper">
+                        <img
+                            src="/main_image.png"
+                            alt="PolyVideo Image"
+                            class="main__image"
+                        />
+                    </div>
                 </div>
 
                 <div class="info__join">
@@ -68,10 +75,12 @@
 
                     <div class="join__options">
                         <ui-input
-                            [placeholder]="'Enter conference code'"
+                            class="options__input"
+                            [placeholder]="sizeService.width() <= 575 ? 'Conference code' : 'Enter conference code'"
                             [(value)]="meetingCodeValue"
                             [size]="'large'"
                             [theme]="'primary'"
+                            [isFullWidth]="sizeService.width() <= 767"
                             (keyup.enter)="joinConference()"
                         ></ui-input>
 

@@ -1,3 +1,4 @@
+import { SizeService } from "@shared/services/size.service";
 import { Component, computed, inject, signal, Signal, WritableSignal } from "@angular/core";
 import { Router, RouterLinkWithHref } from "@angular/router";
 import { AuthService } from "@shared/services/auth.service";
@@ -27,6 +28,7 @@ export class Main {
 
     private authService: AuthService = inject(AuthService);
     private router: Router = inject(Router);
+    protected sizeService: SizeService = inject(SizeService);
 
     protected joinConference(): void {
         if (this.meetingCodeValue().trim().length === 0) {
