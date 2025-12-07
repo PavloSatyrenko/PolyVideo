@@ -1,16 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 
-import { SizeService } from './size.service';
+import { SizeService } from "./size.service";
 
-describe('SizeService', () => {
-  let service: SizeService;
+describe("SizeService", () => {
+    let service: SizeService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(SizeService);
-  });
+    beforeEach(() => {
+        TestBed.configureTestingModule({});
+        service = TestBed.inject(SizeService);
+    });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    it("should be created", () => {
+        expect(service).toBeTruthy();
+    });
 });
