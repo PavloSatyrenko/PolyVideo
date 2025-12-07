@@ -72,17 +72,19 @@
 
 .layout__content {
     flex: 1;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
 .content__container {
     display: flex;
-    height: 800px;
+    height: 700px;
 }
 
 .content__image {
-    width: 1000px;
+    width: 700px;
     height: 100%;
+    object-fit: contain;
 }
 
 .content__info {
