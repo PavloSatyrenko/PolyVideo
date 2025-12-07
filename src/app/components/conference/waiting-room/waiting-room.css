@@ -130,7 +130,13 @@
     gap: 12px;
     align-items: center;
     justify-content: center;
-    height: 120px;
+    height: 88px;
+}
+
+@media screen and (max-width: 991px) and (min-width: 768px) {
+    .room__loader-wrapper {
+        height: unset;
+    }
 }
 
 .room__loader {
@@ -142,8 +148,19 @@
     animation: spin 2s linear infinite;
 }
 
+@media screen and (max-width: 991px) and (min-width: 768px) {
+    .room__loader {
+        display: none;
+    }
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
     }
+}
+
+.room__loader-text {
+    font-size: 20px;
+    text-align: center;
 }

@@ -14,6 +14,18 @@
     transition: transform 0.3s, visibility 0s 0.3s;
 }
 
+@media screen and (max-width: 575px) {
+    .notification {
+        right: 10px;
+        bottom: 10px;
+        left: 10px;
+        gap: 12px;
+        max-width: unset;
+        padding: 16px;
+        transform: translateY(calc(100% + 10px));
+    }
+}
+
 .notification_visible {
     visibility: visible;
     transform: translateY(0);
@@ -40,8 +52,20 @@
     cursor: pointer;
 }
 
+@media screen and (max-width: 575px) {
+    .notification__close {
+        font-size: 18px;
+    }
+}
+
 .notification__icon {
     font-size: 42px;
+}
+
+@media screen and (max-width: 575px) {
+    .notification__icon {
+        font-size: 32px;
+    }
 }
 
 .notification__icon_type_info {
@@ -64,7 +88,19 @@
     font-weight: 600;
 }
 
+@media screen and (max-width: 575px) {
+    .notification__header {
+        font-size: 18px;
+    }
+}
+
 .notification__message {
     font-size: 18px;
     text-wrap: pretty;
+}
+
+@media screen and (max-width: 575px) {
+    .notification__message {
+        font-size: 16px;
+    }
 }

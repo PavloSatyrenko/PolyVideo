@@ -98,15 +98,13 @@
                 <div class="room__loader"></div>
 
                 @if (hasOwnerJoined()) {
-                <ui-title
-                    [title]="'Request to join has been sent...'"
-                    [size]="'small'"
-                ></ui-title>
+                <span class="room__loader-text">
+                    Request to join has been sent...
+                </span>
                 } @else {
-                <ui-title
-                    [title]="'Waiting for the owner to join...'"
-                    [size]="'small'"
-                ></ui-title>
+                <span class="room__loader-text">
+                    Waiting for the owner to join...
+                </span>
                 }
             </div>
             }
