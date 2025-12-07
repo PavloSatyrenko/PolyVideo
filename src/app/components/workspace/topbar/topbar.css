@@ -139,9 +139,10 @@
 .popup__content {
     display: flex;
     flex-direction: column;
-    gap: 48px;
+    gap: 24px;
     width: 600px;
     padding: 24px;
+    margin: 16px;
     background-color: var(--surface-color);
     border-radius: 16px;
 }
