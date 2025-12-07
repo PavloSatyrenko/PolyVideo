@@ -65,10 +65,10 @@ export class Room implements AfterViewInit, OnDestroy {
             type: "video",
             isEnabled: this.conferenceWebSocket.isVideoEnabled()
         },
-        {
-            type: "screen",
+        ...((typeof navigator.mediaDevices?.getDisplayMedia === "function") ? [{
+            type: "screen" as const,
             isEnabled: this.conferenceWebSocket.isScreenSharing()
-        },
+        }] : []),
         {
             type: "participants",
             isEnabled: this.isParticipantsSidebarOpened()

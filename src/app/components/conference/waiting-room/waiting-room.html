@@ -1,4 +1,4 @@
-<div class="room container">
+<div class="room">
     <div class="room__card">
         <div class="room__options">
             <div class="room__video">
@@ -40,7 +40,7 @@
                 <ui-button
                     [label]="'Log in'"
                     [icon]="'fa-solid fa-right-to-bracket'"
-                    [size]="'large'"
+                    [size]="sizeService.width() <= 767 ? 'small' : 'large'"
                     [type]="'primary'"
                     [isFullWidth]="true"
                     [routerLink]="['/auth', 'login']"

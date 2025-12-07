@@ -31,6 +31,18 @@
     --error-color: #e63946;
 }
 
+@media screen and (max-width: 767px) {
+    :root {
+        --controls-item-height: 60px;
+    }
+}
+
+@media screen and (max-width: 575px) {
+    :root {
+        --controls-item-height: 56px;
+    }
+}
+
 * {
     box-sizing: border-box;
     padding: 0;

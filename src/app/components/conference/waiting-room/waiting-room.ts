@@ -10,6 +10,7 @@ import { Router, RouterLink } from "@angular/router";
 import { Select } from "@shared/components/select/select";
 import { DeviceLabelPipe } from "@shared/pipes/device-label-pipe";
 import { Input } from "@shared/components/input/input";
+import { SizeService } from "@shared/services/size.service";
 
 @Component({
     selector: "app-conference-waiting-room",
@@ -60,6 +61,7 @@ export class WaitingRoom implements OnInit {
     private conferenceWebSocket: ConferenceWebsocket = inject(ConferenceWebsocket);
     private authService: AuthService = inject(AuthService);
     private router: Router = inject(Router);
+    protected sizeService: SizeService = inject(SizeService);
 
     constructor() {
         effect(() => {
