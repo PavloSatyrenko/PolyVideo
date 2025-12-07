@@ -11,7 +11,7 @@ export class Button {
     public label: InputSignal<string> = input<string>("");
     public icon: InputSignal<string> = input<string>("");
     public size: InputSignal<"small" | "large"> = input<"small" | "large">("small");
-    public type: InputSignal<"primary" | "secondary" | "primary-line"> = input<"primary" | "secondary" | "primary-line">("primary");
+    public type: InputSignal<"primary" | "primary-line"> = input<"primary" | "primary-line">("primary");
     public isDisabled: InputSignal<boolean> = input<boolean>(false);
     public isFullWidth: InputSignal<boolean> = input<boolean>(false);
 
